@@ -6522,7 +6522,7 @@
       }
     },
     "v1ClusterNamespaceResource": {
-      "description": "Cluster Namespace resource defintion",
+      "description": "Cluster Namespace resource definition",
       "properties": {
         "metadata": {
           "$ref": "#/definitions/v1ObjectMeta"
@@ -6544,6 +6544,9 @@
           "minimum": 0,
           "type": "number"
         },
+        "gpuConfig": {
+          "$ref": "#/definitions/v1GpuConfig"
+        },
         "memoryMiB": {
           "exclusiveMinimum": true,
           "minimum": 0,
@@ -6552,7 +6555,7 @@
       }
     },
     "v1ClusterNamespaceResourceInputEntity": {
-      "description": "Cluster Namespace resource defintion",
+      "description": "Cluster Namespace resource definition",
       "properties": {
         "metadata": {
           "$ref": "#/definitions/v1ObjectMetaUpdateEntity"
@@ -7642,6 +7645,11 @@
           },
           "type": "array",
           "uniqueItems": true
+        },
+        "isSystem": {
+          "default": false,
+          "description": "Set to true when the binding is created automatically by the system, rather than manually by the user",
+          "type": "boolean"
         },
         "relatedObject": {
           "$ref": "#/definitions/v1RelatedObject"
@@ -9733,6 +9741,9 @@
           "exclusiveMinimum": true,
           "minimum": 0,
           "type": "number"
+        },
+        "gpuConfig": {
+          "$ref": "#/definitions/v1GpuConfig"
         },
         "memory": {
           "exclusiveMinimum": true,
@@ -13400,6 +13411,25 @@
         }
       },
       "type": "object"
+    },
+    "v1GpuConfig": {
+      "description": "GPU configuration for resource allocation",
+      "properties": {
+        "limit": {
+          "description": "GPU resource limit",
+          "format": "int32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "provider": {
+          "default": "nvidia",
+          "description": "GPU provider (only nvidia is supported currently)",
+          "enum": [
+            "nvidia"
+          ],
+          "type": "string"
+        }
+      }
     },
     "v1GrpcClientMonitoringData": {
       "properties": {
@@ -30441,6 +30471,23 @@
       },
       "type": "object"
     },
+    "v1TenantClusterRbacSettings": {
+      "description": "Tenant cluster RBAC settings",
+      "properties": {
+        "automaticClusterRoleBinding": {
+          "default": "none",
+          "description": "Specifies the mode for automatic creation and management of cluster role bindings for tenant clusters",
+          "enum": [
+            "none",
+            "enabled",
+            "disabled"
+          ],
+          "type": "string",
+          "x-omitempty": false
+        }
+      },
+      "type": "object"
+    },
     "v1TenantClusterSettings": {
       "properties": {
         "nodesAutoRemediationSetting": {
@@ -37675,6 +37722,9 @@
           "type": "number",
           "x-omitempty": false
         },
+        "gpuConfig": {
+          "$ref": "#/definitions/v1GpuConfig"
+        },
         "memoryMiB": {
           "minimum": -1,
           "type": "number",
@@ -38009,7 +38059,7 @@
     }
   },
   "info": {
-    "title": "Palette APIs - 4.6",
+    "title": "Palette APIs - 4.7",
     "version": "v1"
   },
   "paths": {
@@ -57451,7 +57501,12 @@
               "level",
               "edgeconfig",
               "firth",
-              "stylus"
+              "stylus",
+              "provider-k3s",
+              "provider-kubeadm",
+              "provider-rke2",
+              "provider-nodeadm",
+              "provider-canonical"
             ],
             "in": "path",
             "name": "serviceName",
@@ -57505,7 +57560,12 @@
               "level",
               "edgeconfig",
               "firth",
-              "stylus"
+              "stylus",
+              "provider-k3s",
+              "provider-kubeadm",
+              "provider-rke2",
+              "provider-nodeadm",
+              "provider-canonical"
             ],
             "in": "path",
             "name": "serviceName",
@@ -64836,6 +64896,58 @@
           }
         },
         "summary": "Enable or Disable cluster group for a specific tenant",
+        "tags": [
+          "v1"
+        ]
+      }
+    },
+    "/v1/tenants/{tenantUid}/preferences/clusterRbacSettings": {
+      "get": {
+        "operationId": "v1TenantClusterRbacSettingsGet",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/v1TenantClusterRbacSettings"
+            }
+          }
+        },
+        "summary": "Get tenant cluster RBAC settings",
+        "tags": [
+          "v1"
+        ]
+      },
+      "parameters": [
+        {
+          "in": "path",
+          "name": "tenantUid",
+          "required": true,
+          "type": "string"
+        }
+      ],
+      "put": {
+        "operationId": "v1TenantClusterRbacSettingsUpdate",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/v1TenantClusterRbacSettings"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Ok response without content",
+            "headers": {
+              "AuditUid": {
+                "description": "Audit uid for the request",
+                "type": "string"
+              }
+            }
+          }
+        },
+        "summary": "Update tenant cluster RBAC settings",
         "tags": [
           "v1"
         ]
