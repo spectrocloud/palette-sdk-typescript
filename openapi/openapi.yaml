@@ -3,7 +3,7 @@
 
 openapi: 3.0.1
 info:
-  title: Palette APIs - 4.6
+  title: Palette APIs - 4.7
   version: v1
 servers:
 - url: /
@@ -17191,6 +17191,11 @@ paths:
           - edgeconfig
           - firth
           - stylus
+          - provider-k3s
+          - provider-kubeadm
+          - provider-rke2
+          - provider-nodeadm
+          - provider-canonical
           type: string
       - description: spectro cluster uid
         in: query
@@ -17236,6 +17241,11 @@ paths:
           - edgeconfig
           - firth
           - stylus
+          - provider-k3s
+          - provider-kubeadm
+          - provider-rke2
+          - provider-nodeadm
+          - provider-canonical
           type: string
       - description: service version
         in: path
@@ -23356,6 +23366,52 @@ paths:
           content: {}
           description: The resource was updated successfully
       summary: Enable or Disable cluster group for a specific tenant
+      tags:
+      - tenants
+      x-codegen-request-body-name: body
+  /v1/tenants/{tenantUid}/preferences/clusterRbacSettings:
+    get:
+      operationId: v1TenantClusterRbacSettingsGet
+      parameters:
+      - in: path
+        name: tenantUid
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/v1TenantClusterRbacSettings"
+          description: OK
+      summary: Get tenant cluster RBAC settings
+      tags:
+      - tenants
+    put:
+      operationId: v1TenantClusterRbacSettingsUpdate
+      parameters:
+      - in: path
+        name: tenantUid
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/v1TenantClusterRbacSettings"
+        required: false
+      responses:
+        "204":
+          content: {}
+          description: Ok response without content
+          headers:
+            AuditUid:
+              description: Audit uid for the request
+              schema:
+                type: string
+      summary: Update tenant cluster RBAC settings
       tags:
       - tenants
       x-codegen-request-body-name: body
@@ -38096,7 +38152,7 @@ components:
           type: number
       type: object
     v1ClusterNamespaceResource:
-      description: Cluster Namespace resource defintion
+      description: Cluster Namespace resource definition
       example:
         metadata:
           uid: uid
@@ -38111,6 +38167,9 @@ components:
         spec:
           resourceAllocation:
             cpuCores: 0.08008281904610115
+            gpuConfig:
+              provider: nvidia
+              limit: 0
             memoryMiB: 0.6027456183070403
           isRegex: true
           relatedObject:
@@ -38137,19 +38196,24 @@ components:
       description: Cluster namespace resource allocation
       example:
         cpuCores: 0.08008281904610115
+        gpuConfig:
+          provider: nvidia
+          limit: 0
         memoryMiB: 0.6027456183070403
       properties:
         cpuCores:
           exclusiveMinimum: true
           minimum: 0
           type: number
+        gpuConfig:
+          $ref: "#/components/schemas/v1GpuConfig"
         memoryMiB:
           exclusiveMinimum: true
           minimum: 0
           type: number
       type: object
     v1ClusterNamespaceResourceInputEntity:
-      description: Cluster Namespace resource defintion
+      description: Cluster Namespace resource definition
       properties:
         metadata:
           $ref: "#/components/schemas/v1ObjectMetaUpdateEntity"
@@ -38172,6 +38236,9 @@ components:
           spec:
             resourceAllocation:
               cpuCores: 0.08008281904610115
+              gpuConfig:
+                provider: nvidia
+                limit: 0
               memoryMiB: 0.6027456183070403
             isRegex: true
             relatedObject:
@@ -38199,6 +38266,9 @@ components:
           spec:
             resourceAllocation:
               cpuCores: 0.08008281904610115
+              gpuConfig:
+                provider: nvidia
+                limit: 0
               memoryMiB: 0.6027456183070403
             isRegex: true
             relatedObject:
@@ -38235,6 +38305,9 @@ components:
       example:
         resourceAllocation:
           cpuCores: 0.08008281904610115
+          gpuConfig:
+            provider: nvidia
+            limit: 0
           memoryMiB: 0.6027456183070403
         isRegex: true
         relatedObject:
@@ -41395,6 +41468,7 @@ components:
           labels:
             key: labels
         spec:
+          isSystem: false
           relatedObject:
             uid: uid
             kind: spectrocluster
@@ -41498,6 +41572,7 @@ components:
     v1ClusterRbacSpec:
       description: Cluster RBAC spec
       example:
+        isSystem: false
         relatedObject:
           uid: uid
           kind: spectrocluster
@@ -41533,6 +41608,11 @@ components:
             $ref: "#/components/schemas/v1ClusterRbacBinding"
           type: array
           uniqueItems: true
+        isSystem:
+          default: false
+          description: "Set to true when the binding is created automatically by the\
+            \ system, rather than manually by the user"
+          type: boolean
         relatedObject:
           $ref: "#/components/schemas/v1RelatedObject"
       type: object
@@ -41585,6 +41665,7 @@ components:
             labels:
               key: labels
           spec:
+            isSystem: false
             relatedObject:
               uid: uid
               kind: spectrocluster
@@ -41633,6 +41714,7 @@ components:
             labels:
               key: labels
           spec:
+            isSystem: false
             relatedObject:
               uid: uid
               kind: spectrocluster
@@ -41722,6 +41804,9 @@ components:
       example:
         resourceAllocation:
           cpuCores: -0.9199171809538988
+          gpuConfig:
+            provider: nvidia
+            limit: 0
           memoryMiB: -0.3972543816929597
         clusterUid: clusterUid
       properties:
@@ -52131,7 +52216,10 @@ components:
         spec:
           quota:
             resourceAllocation:
-              memory: 0.6027456183070403
+              memory: 0.14658129805029452
+              gpuConfig:
+                provider: nvidia
+                limit: 0
               cpu: 0.08008281904610115
           clusterRefs:
           - uid: uid
@@ -52144,27 +52232,27 @@ components:
         status:
           total:
             memory:
-              usage: 5.962133916683182
-              allocated: 1.4658129805029452
+              usage: 5.637376656633329
+              allocated: 5.962133916683182
             cpu:
-              usage: 5.962133916683182
-              allocated: 1.4658129805029452
+              usage: 5.637376656633329
+              allocated: 5.962133916683182
           namespaces:
           - total:
               memory:
-                usage: 5.962133916683182
-                allocated: 1.4658129805029452
+                usage: 5.637376656633329
+                allocated: 5.962133916683182
               cpu:
-                usage: 5.962133916683182
-                allocated: 1.4658129805029452
+                usage: 5.637376656633329
+                allocated: 5.962133916683182
             name: name
           - total:
               memory:
-                usage: 5.962133916683182
-                allocated: 1.4658129805029452
+                usage: 5.637376656633329
+                allocated: 5.962133916683182
               cpu:
-                usage: 5.962133916683182
-                allocated: 1.4658129805029452
+                usage: 5.637376656633329
+                allocated: 5.962133916683182
             name: name
       properties:
         meta:
@@ -52180,11 +52268,11 @@ components:
       description: Workspace allocation
       example:
         memory:
-          usage: 5.962133916683182
-          allocated: 1.4658129805029452
+          usage: 5.637376656633329
+          allocated: 5.962133916683182
         cpu:
-          usage: 5.962133916683182
-          allocated: 1.4658129805029452
+          usage: 5.637376656633329
+          allocated: 5.962133916683182
       properties:
         cpu:
           $ref: "#/components/schemas/v1DashboardWorkspaceResourceAllocation"
@@ -52252,11 +52340,11 @@ components:
       example:
         total:
           memory:
-            usage: 5.962133916683182
-            allocated: 1.4658129805029452
+            usage: 5.637376656633329
+            allocated: 5.962133916683182
           cpu:
-            usage: 5.962133916683182
-            allocated: 1.4658129805029452
+            usage: 5.637376656633329
+            allocated: 5.962133916683182
         name: name
       properties:
         name:
@@ -52268,7 +52356,10 @@ components:
       description: Workspace resource quota
       example:
         resourceAllocation:
-          memory: 0.6027456183070403
+          memory: 0.14658129805029452
+          gpuConfig:
+            provider: nvidia
+            limit: 0
           cpu: 0.08008281904610115
       properties:
         resourceAllocation:
@@ -52277,13 +52368,18 @@ components:
     v1DashboardWorkspaceQuotaResourceAllocation:
       description: Workspace quota resource allocation
       example:
-        memory: 0.6027456183070403
+        memory: 0.14658129805029452
+        gpuConfig:
+          provider: nvidia
+          limit: 0
         cpu: 0.08008281904610115
       properties:
         cpu:
           exclusiveMinimum: true
           minimum: 0
           type: number
+        gpuConfig:
+          $ref: "#/components/schemas/v1GpuConfig"
         memory:
           exclusiveMinimum: true
           minimum: 0
@@ -52292,8 +52388,8 @@ components:
     v1DashboardWorkspaceResourceAllocation:
       description: Workspace resource allocation
       example:
-        usage: 5.962133916683182
-        allocated: 1.4658129805029452
+        usage: 5.637376656633329
+        allocated: 5.962133916683182
       properties:
         allocated:
           format: float64
@@ -52309,7 +52405,10 @@ components:
       example:
         quota:
           resourceAllocation:
-            memory: 0.6027456183070403
+            memory: 0.14658129805029452
+            gpuConfig:
+              provider: nvidia
+              limit: 0
             cpu: 0.08008281904610115
         clusterRefs:
         - uid: uid
@@ -52338,27 +52437,27 @@ components:
       example:
         total:
           memory:
-            usage: 5.962133916683182
-            allocated: 1.4658129805029452
+            usage: 5.637376656633329
+            allocated: 5.962133916683182
           cpu:
-            usage: 5.962133916683182
-            allocated: 1.4658129805029452
+            usage: 5.637376656633329
+            allocated: 5.962133916683182
         namespaces:
         - total:
             memory:
-              usage: 5.962133916683182
-              allocated: 1.4658129805029452
+              usage: 5.637376656633329
+              allocated: 5.962133916683182
             cpu:
-              usage: 5.962133916683182
-              allocated: 1.4658129805029452
+              usage: 5.637376656633329
+              allocated: 5.962133916683182
           name: name
         - total:
             memory:
-              usage: 5.962133916683182
-              allocated: 1.4658129805029452
+              usage: 5.637376656633329
+              allocated: 5.962133916683182
             cpu:
-              usage: 5.962133916683182
-              allocated: 1.4658129805029452
+              usage: 5.637376656633329
+              allocated: 5.962133916683182
           name: name
       properties:
         namespaces:
@@ -52402,7 +52501,10 @@ components:
           spec:
             quota:
               resourceAllocation:
-                memory: 0.6027456183070403
+                memory: 0.14658129805029452
+                gpuConfig:
+                  provider: nvidia
+                  limit: 0
                 cpu: 0.08008281904610115
             clusterRefs:
             - uid: uid
@@ -52415,27 +52517,27 @@ components:
           status:
             total:
               memory:
-                usage: 5.962133916683182
-                allocated: 1.4658129805029452
+                usage: 5.637376656633329
+                allocated: 5.962133916683182
               cpu:
-                usage: 5.962133916683182
-                allocated: 1.4658129805029452
+                usage: 5.637376656633329
+                allocated: 5.962133916683182
             namespaces:
             - total:
                 memory:
-                  usage: 5.962133916683182
-                  allocated: 1.4658129805029452
+                  usage: 5.637376656633329
+                  allocated: 5.962133916683182
                 cpu:
-                  usage: 5.962133916683182
-                  allocated: 1.4658129805029452
+                  usage: 5.637376656633329
+                  allocated: 5.962133916683182
               name: name
             - total:
                 memory:
-                  usage: 5.962133916683182
-                  allocated: 1.4658129805029452
+                  usage: 5.637376656633329
+                  allocated: 5.962133916683182
                 cpu:
-                  usage: 5.962133916683182
-                  allocated: 1.4658129805029452
+                  usage: 5.637376656633329
+                  allocated: 5.962133916683182
               name: name
         - metadata:
             uid: uid
@@ -52465,7 +52567,10 @@ components:
           spec:
             quota:
               resourceAllocation:
-                memory: 0.6027456183070403
+                memory: 0.14658129805029452
+                gpuConfig:
+                  provider: nvidia
+                  limit: 0
                 cpu: 0.08008281904610115
             clusterRefs:
             - uid: uid
@@ -52478,27 +52583,27 @@ components:
           status:
             total:
               memory:
-                usage: 5.962133916683182
-                allocated: 1.4658129805029452
+                usage: 5.637376656633329
+                allocated: 5.962133916683182
               cpu:
-                usage: 5.962133916683182
-                allocated: 1.4658129805029452
+                usage: 5.637376656633329
+                allocated: 5.962133916683182
             namespaces:
             - total:
                 memory:
-                  usage: 5.962133916683182
-                  allocated: 1.4658129805029452
+                  usage: 5.637376656633329
+                  allocated: 5.962133916683182
                 cpu:
-                  usage: 5.962133916683182
-                  allocated: 1.4658129805029452
+                  usage: 5.637376656633329
+                  allocated: 5.962133916683182
               name: name
             - total:
                 memory:
-                  usage: 5.962133916683182
-                  allocated: 1.4658129805029452
+                  usage: 5.637376656633329
+                  allocated: 5.962133916683182
                 cpu:
-                  usage: 5.962133916683182
-                  allocated: 1.4658129805029452
+                  usage: 5.637376656633329
+                  allocated: 5.962133916683182
               name: name
       properties:
         cpuUnit:
@@ -61697,6 +61802,24 @@ components:
         repoName:
           type: string
         sha:
+          type: string
+      type: object
+    v1GpuConfig:
+      description: GPU configuration for resource allocation
+      example:
+        provider: nvidia
+        limit: 0
+      properties:
+        limit:
+          description: GPU resource limit
+          format: int32
+          minimum: 0
+          type: integer
+        provider:
+          default: nvidia
+          description: GPU provider (only nvidia is supported currently)
+          enum:
+          - nvidia
           type: string
       type: object
     v1GrpcClientMonitoringData:
@@ -92827,6 +92950,22 @@ components:
           type: boolean
           x-omitempty: false
       type: object
+    v1TenantClusterRbacSettings:
+      description: Tenant cluster RBAC settings
+      example:
+        automaticClusterRoleBinding: none
+      properties:
+        automaticClusterRoleBinding:
+          default: none
+          description: Specifies the mode for automatic creation and management of
+            cluster role bindings for tenant clusters
+          enum:
+          - none
+          - enabled
+          - disabled
+          type: string
+          x-omitempty: false
+      type: object
     v1TenantClusterSettings:
       example:
         nodesAutoRemediationSetting:
@@ -106156,6 +106295,7 @@ components:
               labels:
                 key: labels
             spec:
+              isSystem: false
               relatedObject:
                 uid: uid
                 kind: spectrocluster
@@ -106204,6 +106344,7 @@ components:
               labels:
                 key: labels
             spec:
+              isSystem: false
               relatedObject:
                 uid: uid
                 kind: spectrocluster
@@ -106244,6 +106385,9 @@ components:
           quota:
             resourceAllocation:
               cpuCores: -0.9199171809538988
+              gpuConfig:
+                provider: nvidia
+                limit: 0
               memoryMiB: -0.3972543816929597
           policies:
             backupPolicy:
@@ -106271,14 +106415,23 @@ components:
               clusterResourceAllocations:
               - resourceAllocation:
                   cpuCores: -0.9199171809538988
+                  gpuConfig:
+                    provider: nvidia
+                    limit: 0
                   memoryMiB: -0.3972543816929597
                 clusterUid: clusterUid
               - resourceAllocation:
                   cpuCores: -0.9199171809538988
+                  gpuConfig:
+                    provider: nvidia
+                    limit: 0
                   memoryMiB: -0.3972543816929597
                 clusterUid: clusterUid
               defaultResourceAllocation:
                 cpuCores: -0.9199171809538988
+                gpuConfig:
+                  provider: nvidia
+                  limit: 0
                 memoryMiB: -0.3972543816929597
             image:
               blackListedImages:
@@ -106290,14 +106443,23 @@ components:
               clusterResourceAllocations:
               - resourceAllocation:
                   cpuCores: -0.9199171809538988
+                  gpuConfig:
+                    provider: nvidia
+                    limit: 0
                   memoryMiB: -0.3972543816929597
                 clusterUid: clusterUid
               - resourceAllocation:
                   cpuCores: -0.9199171809538988
+                  gpuConfig:
+                    provider: nvidia
+                    limit: 0
                   memoryMiB: -0.3972543816929597
                 clusterUid: clusterUid
               defaultResourceAllocation:
                 cpuCores: -0.9199171809538988
+                gpuConfig:
+                  provider: nvidia
+                  limit: 0
                 memoryMiB: -0.3972543816929597
             image:
               blackListedImages:
@@ -106900,14 +107062,23 @@ components:
           clusterResourceAllocations:
           - resourceAllocation:
               cpuCores: -0.9199171809538988
+              gpuConfig:
+                provider: nvidia
+                limit: 0
               memoryMiB: -0.3972543816929597
             clusterUid: clusterUid
           - resourceAllocation:
               cpuCores: -0.9199171809538988
+              gpuConfig:
+                provider: nvidia
+                limit: 0
               memoryMiB: -0.3972543816929597
             clusterUid: clusterUid
           defaultResourceAllocation:
             cpuCores: -0.9199171809538988
+            gpuConfig:
+              provider: nvidia
+              limit: 0
             memoryMiB: -0.3972543816929597
         image:
           blackListedImages:
@@ -108595,14 +108766,23 @@ components:
         clusterResourceAllocations:
         - resourceAllocation:
             cpuCores: -0.9199171809538988
+            gpuConfig:
+              provider: nvidia
+              limit: 0
             memoryMiB: -0.3972543816929597
           clusterUid: clusterUid
         - resourceAllocation:
             cpuCores: -0.9199171809538988
+            gpuConfig:
+              provider: nvidia
+              limit: 0
             memoryMiB: -0.3972543816929597
           clusterUid: clusterUid
         defaultResourceAllocation:
           cpuCores: -0.9199171809538988
+          gpuConfig:
+            provider: nvidia
+            limit: 0
           memoryMiB: -0.3972543816929597
       properties:
         clusterResourceAllocations:
@@ -108645,6 +108825,9 @@ components:
       example:
         resourceAllocation:
           cpuCores: -0.9199171809538988
+          gpuConfig:
+            provider: nvidia
+            limit: 0
           memoryMiB: -0.3972543816929597
       properties:
         resourceAllocation:
@@ -108654,12 +108837,17 @@ components:
       description: Workspace resource allocation
       example:
         cpuCores: -0.9199171809538988
+        gpuConfig:
+          provider: nvidia
+          limit: 0
         memoryMiB: -0.3972543816929597
       properties:
         cpuCores:
           minimum: -1
           type: number
           x-omitempty: false
+        gpuConfig:
+          $ref: "#/components/schemas/v1GpuConfig"
         memoryMiB:
           minimum: -1
           type: number
@@ -109018,6 +109206,7 @@ components:
             labels:
               key: labels
           spec:
+            isSystem: false
             relatedObject:
               uid: uid
               kind: spectrocluster
@@ -109066,6 +109255,7 @@ components:
             labels:
               key: labels
           spec:
+            isSystem: false
             relatedObject:
               uid: uid
               kind: spectrocluster
@@ -109106,6 +109296,9 @@ components:
         quota:
           resourceAllocation:
             cpuCores: -0.9199171809538988
+            gpuConfig:
+              provider: nvidia
+              limit: 0
             memoryMiB: -0.3972543816929597
         policies:
           backupPolicy:
@@ -109133,14 +109326,23 @@ components:
             clusterResourceAllocations:
             - resourceAllocation:
                 cpuCores: -0.9199171809538988
+                gpuConfig:
+                  provider: nvidia
+                  limit: 0
                 memoryMiB: -0.3972543816929597
               clusterUid: clusterUid
             - resourceAllocation:
                 cpuCores: -0.9199171809538988
+                gpuConfig:
+                  provider: nvidia
+                  limit: 0
                 memoryMiB: -0.3972543816929597
               clusterUid: clusterUid
             defaultResourceAllocation:
               cpuCores: -0.9199171809538988
+              gpuConfig:
+                provider: nvidia
+                limit: 0
               memoryMiB: -0.3972543816929597
           image:
             blackListedImages:
@@ -109152,14 +109354,23 @@ components:
             clusterResourceAllocations:
             - resourceAllocation:
                 cpuCores: -0.9199171809538988
+                gpuConfig:
+                  provider: nvidia
+                  limit: 0
                 memoryMiB: -0.3972543816929597
               clusterUid: clusterUid
             - resourceAllocation:
                 cpuCores: -0.9199171809538988
+                gpuConfig:
+                  provider: nvidia
+                  limit: 0
                 memoryMiB: -0.3972543816929597
               clusterUid: clusterUid
             defaultResourceAllocation:
               cpuCores: -0.9199171809538988
+              gpuConfig:
+                provider: nvidia
+                limit: 0
               memoryMiB: -0.3972543816929597
           image:
             blackListedImages:
