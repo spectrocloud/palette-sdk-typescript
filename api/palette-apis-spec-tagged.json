@@ -3739,7 +3739,8 @@
             "AzureChinaCloud",
             "AzurePublicCloud",
             "AzureUSGovernment",
-            "AzureUSGovernmentCloud"
+            "AzureUSGovernmentCloud",
+            "AzureUSSecretCloud"
           ],
           "type": "string"
         },
@@ -3762,6 +3763,10 @@
         "tenantName": {
           "description": "Tenant ID is the ID for the Azure AD tenant that the user belongs to.",
           "type": "string"
+        },
+        "tls": {
+          "$ref": "#/definitions/v1AzureSecretTlsConfig",
+          "description": "TLS configuration for the Azure secret"
         }
       },
       "required": [
@@ -4392,6 +4397,16 @@
             "$ref": "#/definitions/v1ResourceGroup"
           },
           "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "v1AzureSecretTlsConfig": {
+      "description": "TLS configuration for the AWS secret",
+      "properties": {
+        "cert": {
+          "description": "Certificate is the TLS certificate used to authenticate the Azure secret",
+          "type": "string"
         }
       },
       "type": "object"
@@ -10969,7 +10984,7 @@
           "type": "string"
         },
         "twoNodeCandidatePriority": {
-          "description": "Set the edgehost candidate priority as primary or secondary, if the edgehost is nominated as two node candidate",
+          "description": "Sets the Edge Host candidate priority as either primary or secondary. This field is applicable only when the Edge Host is nominated as a two-node candidate. To enable priority assignment, ensure that 'isTwoNodeCluster' is set to true.\n",
           "enum": [
             "primary",
             "secondary"
@@ -11066,7 +11081,7 @@
           "description": "Edge native nic"
         },
         "twoNodeCandidatePriority": {
-          "description": "Set the Edge Host candidate priority as primary or secondary, if the Edge Host is nominated as two node candidate",
+          "description": "Sets the Edge Host candidate priority as either primary or secondary. This field is applicable only when the Edge Host is nominated as a two-node candidate. To enable priority assignment, ensure that 'isTwoNodeCluster' is set to true.\n",
           "enum": [
             "primary",
             "secondary"
@@ -11262,7 +11277,7 @@
           "type": "string"
         },
         "twoNodeCandidatePriority": {
-          "description": "Set the edgehost candidate priority as primary or secondary, if the edgehost is nominated as two node candidate",
+          "description": "Sets the Edge Host candidate priority as either primary or secondary. This field is applicable only when the Edge Host is nominated as a two-node candidate. To enable priority assignment, ensure that 'isTwoNodeCluster' is set to true.\n",
           "enum": [
             "primary",
             "secondary"
@@ -12421,6 +12436,23 @@
           "description": "Addresses is a map of PCI device entry name to its addresses.\nExample entry would be \"11:00.0 VGA compatible controller [0300]: NVIDIA\nCorporation Device [10de:1eb1] (rev a1)\"- > 0000_11_00_0\" The address is\nBDF (Bus Device Function) identifier format seperated by underscores. The\nfirst 4 bits are almost always 0000. In the above example 11 is Bus, 00\nis Device,0 is function. The values of these addreses are expected in hexadecimal\nformat\n",
           "type": "object"
         },
+        "gpuCount": {
+          "description": "Number of GPUs",
+          "format": "int32",
+          "type": "integer"
+        },
+        "memory": {
+          "description": "GPU memory specification",
+          "type": "string"
+        },
+        "migCapable": {
+          "description": "MIG capability flag",
+          "type": "boolean"
+        },
+        "migStrategy": {
+          "description": "MIG strategy configuration",
+          "type": "string"
+        },
         "model": {
           "description": "Model is the model of GPU, for a given vendor, for eg., TU104GL [Tesla T4]",
           "type": "string"
@@ -13418,8 +13450,9 @@
         "limit": {
           "description": "GPU resource limit",
           "format": "int32",
-          "minimum": 0,
-          "type": "integer"
+          "minimum": -1,
+          "type": "integer",
+          "x-omitempty": false
         },
         "provider": {
           "default": "nvidia",
@@ -47393,6 +47426,13 @@
             "description": "vhd location for which Azure vhd url is requested",
             "in": "path",
             "name": "vhd",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "description": "Uid for the specific Azure cloud account",
+            "in": "query",
+            "name": "cloudAccountUid",
             "required": true,
             "type": "string"
           }
