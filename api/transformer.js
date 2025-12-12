@@ -1,4 +1,26 @@
 /**
+ * Recursively removes all additionalProperties fields of type object from the OpenAPI spec
+ * @param {Object} obj - The object to clean
+ * @param {string} path - Current path for debugging (optional)
+ * @returns {number} - Number of additionalProperties removed
+ */
+function removeAdditionalPropertiesOfTypeObject(obj, path = '') {
+  let removedCount = 0;
+  if (typeof obj === 'object' && obj !== null) {
+    for (const [key, value] of Object.entries(obj)) {
+      if (key === 'additionalProperties' && typeof value === 'object' && value !== null) {
+        // If the value is a schema object (not boolean), remove it
+        delete obj[key];
+        removedCount++;
+        console.log(`    🗑️  Removed additionalProperties of type object at ${path}`);
+      } else if (typeof value === 'object' && value !== null) {
+        removedCount += removeAdditionalPropertiesOfTypeObject(value, `${path}.${key}`);
+      }
+    }
+  }
+  return removedCount;
+}
+/**
  * Copyright (c) Spectro Cloud
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -171,6 +193,13 @@ function cleanOpenAPISpec(spec) {
 
   // 4. Clean $ref references to use updated schema names
   changesCount += cleanReferences(spec);
+
+  // 5. Remove all additionalProperties of type object
+  const removedAdditionalProps = removeAdditionalPropertiesOfTypeObject(spec);
+  if (removedAdditionalProps > 0) {
+    console.log(`  ✅ Removed ${removedAdditionalProps} additionalProperties of type object`);
+  }
+  changesCount += removedAdditionalProps;
 
   if (changesCount > 0) {
     console.log(`🎯 OpenAPI spec cleaned: ${changesCount} total changes applied`);

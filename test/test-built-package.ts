@@ -15,7 +15,7 @@ import {
   type ClusterProfilesFilterSummaryParams,
   type ClusterProfilesSummary,
   type ClusterProfilesMetadata,
-} from "../dist/index.js";
+} from "../dist/palette";
 
 async function testBuiltPackage() {
   console.log("Testing built package imports...");
