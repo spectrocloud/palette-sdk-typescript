@@ -15,7 +15,7 @@ import {
   type ClusterProfilesFilterSummaryParams,
   type ClusterProfilesSummary,
   type ClusterProfilesMetadata,
-} from "../palette";
+} from "../dist/palette";
 
 // Load environment variables with expanded path handling
 const result = dotenvx.config({

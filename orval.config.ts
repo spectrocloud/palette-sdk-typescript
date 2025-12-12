@@ -16,12 +16,15 @@ export default defineConfig({
     output: {
       target: "./palette/client.ts",
       client: "fetch",
-      baseUrl: "https://api.spectrocloud.com",
       schemas: "./palette/schemas",
       prettier: true,
       override: {
         fetch: {
           includeHttpResponseReturnType: false,
+        },
+        mutator: {
+          path: './client/index.ts',
+          name: 'customFetch',
         },
         useTypeOverInterfaces: true,
       },

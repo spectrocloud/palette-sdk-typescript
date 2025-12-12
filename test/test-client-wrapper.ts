@@ -10,7 +10,7 @@ import {
   type ClusterProfilesFilterSummaryParams,
   type ClusterProfilesSummary,
   type ClusterProfilesMetadata,
-} from "../palette";
+} from "../dist/palette";
 import dotenvx from "@dotenvx/dotenvx";
 
 const result = dotenvx.config({

@@ -51,10 +51,6 @@ import {
   type SpectroClustersMetadata,
 } from "palette-sdk-typescript";
 
-// Configure custom base URL (optional)
-// By default, the SDK uses https://api.spectrocloud.com
-// Set a custom URL if you have a different Palette instance
-setPaletteBaseUrl("https://your-palette-host.com");
 
 // Configure authentication
 const config = {
@@ -63,6 +59,9 @@ const config = {
     "Content-Type": "application/json",
     ProjectUID: process.env.PROJECT_UID, // Optional, for project-scoped requests
   },
+  // Configure custom base URL (optional)
+  // By default, the SDK uses https://api.spectrocloud.com
+  baseUrl: 'https://your-palette-host.com'
 };
 
 // Get all clusters
@@ -81,21 +80,23 @@ If a project UID is not specified, then the Palette API will use the tenant scop
 ### Base URL Configuration
 
 By default, the PaletteSDK targets `https://api.spectrocloud.com`. If you have a different Palette instance, such as a self-hosted Palette instance, you can configure the base URL.
-
 ```typescript
-import { setPaletteBaseUrl, getPaletteBaseUrl } from "palette-sdk-typescript";
+const config = {
+  headers: {
+    ApiKey: process.env.PALETTE_API_KEY,
+    "Content-Type": "application/json",
+    ProjectUID: process.env.PROJECT_UID,
+  },
+  // Set custom base URL
+  baseUrl: 'https://your-palette-host.com'
+};
 
-// Set custom base URL
-setPaletteBaseUrl("https://your-palette-host.com");
+const response: SpectroClustersMetadata = await spectroClustersMetadataGet(
+  {},
+  config
+);
 ```
-
-The SDK will now use your custom URL for all API calls.
-You can also check what the current base URL is by calling `getPaletteBaseUrl()`.
-
-```typescript
-const currentUrl = getPaletteBaseUrl();
-console.log("Current base URL:", currentUrl);
-```
+The SDK will now use your custom URL(`https://your-palette-host.com`) for all API calls.
 
 ## Contributing
 

@@ -1939,7 +1939,9 @@
             "update",
             "delete",
             "publish",
-            "deploy"
+            "deploy",
+            "activity",
+            "action"
           ],
           "type": "string"
         },
@@ -2398,7 +2400,7 @@
       "type": "object"
     },
     "v1AwsCloudAccount": {
-      "description": "AWS cloud account which includes access key and secret key in case of 'secret' credentials type. It includes policyARNS, ARN and externalId in case of sts. Partition is a group of AWS Region and Service objects",
+      "description": "AWS cloud account which includes access key and secret key in case of 'secret' credentials type. It includes policyARNS, ARN and externalId in case of sts. It includes roleArn and permissionBoundaryArn in case of podIdentity. Partition is a group of AWS Region and Service objects",
       "properties": {
         "accessKey": {
           "description": "AWS account access key",
@@ -2417,6 +2419,10 @@
             "aws-iso-b"
           ],
           "type": "string"
+        },
+        "podIdentity": {
+          "$ref": "#/definitions/v1AwsPodIdentityCredentials",
+          "description": "AWS EKS Pod Identity credentials in case of credentialType podIdentity, will be empty in case of other credential types"
         },
         "policyARNs": {
           "description": "List of policy ARNs required in case of credentialType sts.",
@@ -2445,10 +2451,11 @@
     },
     "v1AwsCloudAccountCredentialType": {
       "default": "secret",
-      "description": "Allowed Values [secret, sts]. STS type will be used for role assumption for sts type, accessKey/secretKey contains the source account, Arn is the target account.",
+      "description": "Allowed Values [secret, sts, pod-identity]. STS type will be used for role assumption for sts type, accessKey/secretKey contains the source account, Arn is the target account. Pod Identity type will be used for EKS Pod Identity authentication with roleArn as the target account.",
       "enum": [
         "secret",
-        "sts"
+        "sts",
+        "pod-identity"
       ],
       "type": "string"
     },
@@ -3236,6 +3243,20 @@
         "aws-us-gov"
       ],
       "type": "string"
+    },
+    "v1AwsPodIdentityCredentials": {
+      "description": "AWS EKS Pod Identity credentials for role assumption",
+      "properties": {
+        "permissionBoundaryArn": {
+          "description": "Optional Permission Boundary ARN to limit the maximum permissions for roles created by Hubble",
+          "type": "string"
+        },
+        "roleArn": {
+          "description": "IAM Role ARN for the AWS EKS Pod Identity in cloud account",
+          "type": "string"
+        }
+      },
+      "type": "object"
     },
     "v1AwsPolicies": {
       "properties": {
@@ -5221,6 +5242,13 @@
     "v1CloudMachineStatus": {
       "description": "cloud machine status",
       "properties": {
+        "addresses": {
+          "description": "List of machine IP addresses",
+          "items": {
+            "$ref": "#/definitions/v1MachineAddress"
+          },
+          "type": "array"
+        },
         "health": {
           "$ref": "#/definitions/v1MachineHealth"
         },
@@ -5237,8 +5265,16 @@
           ],
           "type": "string"
         },
+        "instanceStateLastUpdate": {
+          "$ref": "#/definitions/v1Time",
+          "description": "Timestamp of the last instance state update"
+        },
         "maintenanceStatus": {
           "$ref": "#/definitions/v1MachineMaintenanceStatus"
+        },
+        "ready": {
+          "description": "Indicates whether the machine is ready",
+          "type": "boolean"
         }
       },
       "type": "object"
@@ -5292,6 +5328,989 @@
         }
       },
       "type": "object"
+    },
+    "v1CloudStackAccount": {
+      "description": "CloudStack account information",
+      "properties": {
+        "apiVersion": {
+          "description": "Cloud account api version",
+          "type": "string"
+        },
+        "kind": {
+          "description": "Cloud account kind",
+          "type": "string"
+        },
+        "metadata": {
+          "$ref": "#/definitions/v1ObjectMeta"
+        },
+        "spec": {
+          "$ref": "#/definitions/v1CloudStackCloudAccount"
+        },
+        "status": {
+          "$ref": "#/definitions/v1CloudAccountStatus"
+        }
+      },
+      "type": "object"
+    },
+    "v1CloudStackAccountInputEntity": {
+      "description": "CloudStack account input entity",
+      "properties": {
+        "metadata": {
+          "$ref": "#/definitions/v1ObjectMetaInputEntity"
+        },
+        "spec": {
+          "$ref": "#/definitions/v1CloudStackCloudAccount"
+        },
+        "status": {
+          "$ref": "#/definitions/v1CloudAccountStatus"
+        }
+      },
+      "type": "object"
+    },
+    "v1CloudStackAccountUpdateEntity": {
+      "description": "CloudStack account update entity",
+      "properties": {
+        "metadata": {
+          "$ref": "#/definitions/v1ObjectMetaUpdateEntity"
+        },
+        "spec": {
+          "$ref": "#/definitions/v1CloudStackCloudAccount"
+        },
+        "status": {
+          "$ref": "#/definitions/v1CloudAccountStatus"
+        }
+      },
+      "type": "object"
+    },
+    "v1CloudStackAccounts": {
+      "properties": {
+        "items": {
+          "items": {
+            "$ref": "#/definitions/v1CloudStackAccount"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "listmeta": {
+          "$ref": "#/definitions/v1ListMetaData"
+        }
+      },
+      "required": [
+        "items"
+      ],
+      "type": "object"
+    },
+    "v1CloudStackCloudAccount": {
+      "description": "CloudStack cloud account credentials",
+      "properties": {
+        "apiKey": {
+          "description": "API Key for CloudStack authentication",
+          "type": "string"
+        },
+        "apiUrl": {
+          "description": "API URL for CloudStack management server",
+          "type": "string"
+        },
+        "domain": {
+          "description": "Cloudstack domain",
+          "type": "string"
+        },
+        "insecure": {
+          "description": "Skip SSL certificate verification (default: false)",
+          "type": "boolean"
+        },
+        "secretKey": {
+          "description": "Secret Key for CloudStack authentication",
+          "type": "string"
+        }
+      },
+      "required": [
+        "apiUrl",
+        "apiKey",
+        "secretKey"
+      ],
+      "type": "object"
+    },
+    "v1CloudStackCloudClusterConfigEntity": {
+      "description": "CloudStack cloud cluster config entity",
+      "properties": {
+        "clusterConfig": {
+          "$ref": "#/definitions/v1CloudStackClusterConfigUpdateEntity"
+        }
+      },
+      "type": "object"
+    },
+    "v1CloudStackCloudConfig": {
+      "description": "CloudStackCloudConfig is the Schema for the CloudStackcloudconfigs API",
+      "properties": {
+        "apiVersion": {
+          "description": "APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources",
+          "type": "string"
+        },
+        "kind": {
+          "description": "Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds",
+          "type": "string"
+        },
+        "metadata": {
+          "$ref": "#/definitions/v1ObjectMeta"
+        },
+        "spec": {
+          "$ref": "#/definitions/v1CloudStackCloudConfigSpec"
+        },
+        "status": {
+          "$ref": "#/definitions/v1CloudStackCloudConfigStatus"
+        }
+      },
+      "type": "object"
+    },
+    "v1CloudStackCloudConfigSpec": {
+      "description": "CloudStackCloudConfigSpec defines the cloud configuration input by user This will translate to clusterspec/machinespec for cluster-api",
+      "properties": {
+        "cloudAccountRef": {
+          "$ref": "#/definitions/v1ObjectReference",
+          "description": "cloudAccountRef should point to the secret which contains CloudStackCloudAccount"
+        },
+        "clusterConfig": {
+          "$ref": "#/definitions/v1CloudStackClusterConfig"
+        },
+        "machinePoolConfig": {
+          "items": {
+            "$ref": "#/definitions/v1CloudStackMachinePoolConfig"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "v1CloudStackCloudConfigStatus": {
+      "description": "CloudStackCloudConfigStatus defines the observed state of CloudStackCloudConfig The cloudimage info built by Mold is stored here image should be mapped to a specific machinepool",
+      "properties": {
+        "conditions": {
+          "items": {
+            "$ref": "#/definitions/v1ClusterCondition"
+          },
+          "type": "array"
+        },
+        "nodeImage": {
+          "type": "string"
+        },
+        "sourceImageId": {
+          "description": "sourceImageId, it can be from packref's annotations or from pack.json",
+          "type": "string"
+        },
+        "useCapiImage": {
+          "type": "boolean"
+        }
+      },
+      "type": "object"
+    },
+    "v1CloudStackClusterConfig": {
+      "description": "Cluster level configuration for CloudStack cloud, same for all machinepools",
+      "properties": {
+        "controlPlaneEndpoint": {
+          "description": "Endpoint IP to be used for API server, should only be enabled for static CloudStack network",
+          "type": "string"
+        },
+        "project": {
+          "$ref": "#/definitions/v1CloudStackResource",
+          "description": "Project name for the cluster (optional)"
+        },
+        "sshKeyName": {
+          "description": "SSH Key name for accessing cluster nodes",
+          "type": "string"
+        },
+        "syncWithCKS": {
+          "description": "SyncWithCKS determines if an externalManaged CKS cluster should be created (optional)",
+          "type": "boolean"
+        },
+        "zones": {
+          "description": "Multiple zones for multi-AZ deployments. If only one zone is specified, it will be treated as single-zone deployment",
+          "items": {
+            "$ref": "#/definitions/v1CloudStackZoneSpec"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "v1CloudStackClusterConfigUpdateEntity": {
+      "description": "Cluster level update configuration for CloudStack",
+      "properties": {
+        "controlPlaneEndpoint": {
+          "description": "Endpoint IP to be used for API server, should only be enabled for static CloudStack network",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "v1CloudStackDiskOffering": {
+      "description": "CloudStack disk offering",
+      "properties": {
+        "id": {
+          "description": "Disk offering ID",
+          "type": "string"
+        },
+        "name": {
+          "description": "Disk offering name",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "v1CloudStackDiskOfferings": {
+      "description": "List of CloudStack disk offerings",
+      "properties": {
+        "diskOfferings": {
+          "items": {
+            "$ref": "#/definitions/v1CloudStackDiskOffering"
+          },
+          "type": "array",
+          "uniqueItems": true
+        }
+      },
+      "type": "object"
+    },
+    "v1CloudStackDomain": {
+      "description": "CloudStack domain",
+      "properties": {
+        "id": {
+          "description": "Domain ID",
+          "type": "string"
+        },
+        "name": {
+          "description": "Domain name",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "v1CloudStackDomains": {
+      "description": "List of CloudStack domains",
+      "properties": {
+        "domains": {
+          "items": {
+            "$ref": "#/definitions/v1CloudStackDomain"
+          },
+          "type": "array",
+          "uniqueItems": true
+        }
+      },
+      "type": "object"
+    },
+    "v1CloudStackKeypair": {
+      "description": "CloudStack SSH key pair",
+      "properties": {
+        "fingerprint": {
+          "description": "SSH key pair fingerprint",
+          "type": "string"
+        },
+        "name": {
+          "description": "SSH key pair name",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "v1CloudStackKeypairs": {
+      "description": "List of CloudStack SSH key pairs",
+      "properties": {
+        "items": {
+          "items": {
+            "$ref": "#/definitions/v1CloudStackKeypair"
+          },
+          "type": "array",
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "items"
+      ],
+      "type": "object"
+    },
+    "v1CloudStackMachine": {
+      "description": "CloudStack cloud VM definition",
+      "properties": {
+        "apiVersion": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "metadata": {
+          "$ref": "#/definitions/v1ObjectMeta"
+        },
+        "spec": {
+          "$ref": "#/definitions/v1CloudStackMachineSpec"
+        },
+        "status": {
+          "$ref": "#/definitions/v1CloudMachineStatus"
+        }
+      },
+      "type": "object"
+    },
+    "v1CloudStackMachineConfig": {
+      "description": "CloudStack-specific machine configuration",
+      "properties": {
+        "additionalAnnotations": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "Custom annotations for CAPI machine objects and nodes",
+          "type": "object"
+        },
+        "instanceConfig": {
+          "$ref": "#/definitions/v1InstanceConfig",
+          "description": "Instance Configuration"
+        },
+        "networks": {
+          "description": "Network configuration",
+          "items": {
+            "$ref": "#/definitions/v1CloudStackNetworkConfig"
+          },
+          "type": "array"
+        },
+        "offering": {
+          "$ref": "#/definitions/v1CloudStackResource",
+          "description": "Service offering (instance type/size)"
+        },
+        "template": {
+          "$ref": "#/definitions/v1CloudStackResource",
+          "description": "CloudStack template override for this machine pool. If not specified, inherits cluster default from profile."
+        }
+      },
+      "type": "object"
+    },
+    "v1CloudStackMachineConfigEntity": {
+      "properties": {
+        "instanceConfig": {
+          "$ref": "#/definitions/v1InstanceConfig",
+          "description": "Instance Configuration"
+        },
+        "networks": {
+          "description": "Network configuration",
+          "items": {
+            "$ref": "#/definitions/v1CloudStackNetworkConfig"
+          },
+          "type": "array"
+        },
+        "offering": {
+          "$ref": "#/definitions/v1CloudStackResource"
+        },
+        "template": {
+          "$ref": "#/definitions/v1CloudStackResource",
+          "description": "CloudStack template override for this machine pool. If not specified, inherits cluster default from profile."
+        }
+      },
+      "required": [
+        "offering"
+      ],
+      "type": "object"
+    },
+    "v1CloudStackMachineDiskOffering": {
+      "description": "CloudStack disk offering configuration for machine",
+      "properties": {
+        "customSizeInGB": {
+          "description": "Custom disk size in GB",
+          "format": "int32",
+          "type": "integer"
+        },
+        "device": {
+          "description": "Device name for the disk",
+          "type": "string"
+        },
+        "filesystem": {
+          "description": "Filesystem type for the disk",
+          "type": "string"
+        },
+        "label": {
+          "description": "Label for the disk",
+          "type": "string"
+        },
+        "mountPath": {
+          "description": "Mount path for the disk",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "v1CloudStackMachineOffering": {
+      "description": "CloudStack compute offering configuration for machine",
+      "properties": {
+        "name": {
+          "description": "Offering name",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "v1CloudStackMachinePoolCloudConfigEntity": {
+      "properties": {
+        "additionalAnnotations": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "Custom annotations for CAPI machine objects and nodes",
+          "type": "object"
+        },
+        "instanceConfig": {
+          "$ref": "#/definitions/v1InstanceConfig",
+          "description": "Instance Configuration"
+        },
+        "networks": {
+          "description": "Network configuration",
+          "items": {
+            "$ref": "#/definitions/v1CloudStackNetworkConfig"
+          },
+          "type": "array"
+        },
+        "offering": {
+          "$ref": "#/definitions/v1CloudStackResource",
+          "description": "Service offering (instance type/size)"
+        },
+        "template": {
+          "$ref": "#/definitions/v1CloudStackResource",
+          "description": "CloudStack template override for this machine pool. If not specified, inherits cluster default from profile."
+        }
+      },
+      "required": [
+        "offering"
+      ],
+      "type": "object"
+    },
+    "v1CloudStackMachinePoolConfig": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/v1MachinePoolBaseConfig"
+        },
+        {
+          "$ref": "#/definitions/v1CloudStackMachineConfig"
+        }
+      ],
+      "description": "Configuration for a CloudStack machine pool",
+      "type": "object"
+    },
+    "v1CloudStackMachinePoolConfigEntity": {
+      "properties": {
+        "cloudConfig": {
+          "$ref": "#/definitions/v1CloudStackMachinePoolCloudConfigEntity"
+        },
+        "poolConfig": {
+          "$ref": "#/definitions/v1MachinePoolConfigEntity"
+        }
+      },
+      "required": [
+        "cloudConfig"
+      ],
+      "type": "object"
+    },
+    "v1CloudStackMachineSpec": {
+      "description": "CloudStack cloud VM definition spec",
+      "properties": {
+        "diskOffering": {
+          "$ref": "#/definitions/v1CloudStackMachineDiskOffering",
+          "description": "Disk offering configuration for additional storage"
+        },
+        "failureDomainName": {
+          "description": "Failure domain name (zone) for the machine",
+          "type": "string"
+        },
+        "instanceType": {
+          "$ref": "#/definitions/v1GenericInstanceType",
+          "description": "Instance service offering with cpu and memory info"
+        },
+        "nics": {
+          "items": {
+            "$ref": "#/definitions/v1CloudStackNic"
+          },
+          "type": "array"
+        },
+        "offering": {
+          "$ref": "#/definitions/v1CloudStackMachineOffering",
+          "description": "Compute offering configuration"
+        },
+        "providerID": {
+          "description": "Provider ID for the machine",
+          "type": "string"
+        },
+        "sshKey": {
+          "description": "SSH key name to use for the machine",
+          "type": "string"
+        },
+        "template": {
+          "$ref": "#/definitions/v1CloudStackMachineTemplate",
+          "description": "Template configuration for the machine"
+        }
+      },
+      "type": "object"
+    },
+    "v1CloudStackMachineTemplate": {
+      "description": "CloudStack template configuration for machine",
+      "properties": {
+        "name": {
+          "description": "Template name",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "v1CloudStackMachines": {
+      "description": "CloudStack machine list",
+      "properties": {
+        "items": {
+          "items": {
+            "$ref": "#/definitions/v1CloudStackMachine"
+          },
+          "type": "array",
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "items"
+      ],
+      "type": "object"
+    },
+    "v1CloudStackNetwork": {
+      "description": "CloudStack network",
+      "properties": {
+        "cidr": {
+          "description": "CIDR block for the network",
+          "type": "string"
+        },
+        "displayText": {
+          "description": "Display text for the network",
+          "type": "string"
+        },
+        "gateway": {
+          "description": "Gateway IP address for the network",
+          "type": "string"
+        },
+        "id": {
+          "description": "Network ID",
+          "type": "string"
+        },
+        "isDefault": {
+          "description": "Whether this is the default network",
+          "type": "boolean"
+        },
+        "isShared": {
+          "description": "Whether the network is shared across accounts",
+          "type": "boolean"
+        },
+        "name": {
+          "description": "Network name",
+          "type": "string"
+        },
+        "netmask": {
+          "description": "Network mask for the network",
+          "type": "string"
+        },
+        "networkDomain": {
+          "description": "Network domain",
+          "type": "string"
+        },
+        "networkOffering": {
+          "description": "Network offering name",
+          "type": "string"
+        },
+        "state": {
+          "description": "Current state of the network (Setup, Allocated, etc.)",
+          "type": "string"
+        },
+        "trafficType": {
+          "description": "Traffic type of the network (Guest, Management, etc.)",
+          "type": "string"
+        },
+        "type": {
+          "description": "Network type - Isolated, Shared, etc.",
+          "type": "string"
+        },
+        "zoneId": {
+          "description": "Zone ID where the network is located",
+          "type": "string"
+        },
+        "zoneName": {
+          "description": "Zone name where the network is located",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "v1CloudStackNetworkConfig": {
+      "description": "Network configuration for CloudStack instances",
+      "properties": {
+        "id": {
+          "description": "Network id",
+          "type": "string"
+        },
+        "name": {
+          "description": "Network name",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "v1CloudStackNetworkSpec": {
+      "description": "Enhanced network configuration for CloudStack",
+      "properties": {
+        "gateway": {
+          "description": "Gateway IP address for the network",
+          "type": "string"
+        },
+        "id": {
+          "description": "Network id",
+          "type": "string"
+        },
+        "name": {
+          "description": "Network name",
+          "type": "string"
+        },
+        "netmask": {
+          "description": "Network mask for the network",
+          "type": "string"
+        },
+        "offering": {
+          "description": "Network offering name",
+          "type": "string"
+        },
+        "routingMode": {
+          "description": "Routing mode for the network",
+          "type": "string"
+        },
+        "type": {
+          "description": "Network type: Isolated, Shared, etc.",
+          "type": "string"
+        },
+        "vpc": {
+          "$ref": "#/definitions/v1CloudStackVPCSpec",
+          "description": "VPC configuration (optional, for VPC networks)"
+        }
+      },
+      "type": "object"
+    },
+    "v1CloudStackNetworks": {
+      "description": "List of CloudStack networks",
+      "properties": {
+        "networks": {
+          "items": {
+            "$ref": "#/definitions/v1CloudStackNetwork"
+          },
+          "type": "array",
+          "uniqueItems": true
+        }
+      },
+      "type": "object"
+    },
+    "v1CloudStackNic": {
+      "description": "CloudStack network interface",
+      "properties": {
+        "index": {
+          "format": "int8",
+          "type": "integer"
+        },
+        "macAddress": {
+          "type": "string"
+        },
+        "networkName": {
+          "type": "string"
+        },
+        "privateIPs": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "v1CloudStackOffering": {
+      "description": "CloudStack compute offering",
+      "properties": {
+        "cpuNumber": {
+          "description": "Number of CPU cores",
+          "format": "int32",
+          "type": "integer"
+        },
+        "cpuSpeed": {
+          "description": "CPU speed in MHz",
+          "format": "int32",
+          "type": "integer"
+        },
+        "displayText": {
+          "description": "Display text for the offering",
+          "type": "string"
+        },
+        "hypervisorSnapshotReserve": {
+          "description": "Hypervisor snapshot reserve space as percentage",
+          "format": "int32",
+          "type": "integer"
+        },
+        "id": {
+          "description": "Offering ID",
+          "type": "string"
+        },
+        "isCustomized": {
+          "description": "Whether the offering allows customization of CPU and memory",
+          "type": "boolean"
+        },
+        "isCustomizedIops": {
+          "description": "Whether the offering allows customization of IOPS",
+          "type": "boolean"
+        },
+        "isVolatile": {
+          "description": "Whether the VM is volatile (data is lost on stop/restart)",
+          "type": "boolean"
+        },
+        "limitCpuUse": {
+          "description": "Whether CPU usage is limited",
+          "type": "boolean"
+        },
+        "maxIops": {
+          "description": "Maximum IOPS for customized offerings",
+          "format": "int64",
+          "type": "integer"
+        },
+        "memory": {
+          "description": "Memory size in MB",
+          "format": "int64",
+          "type": "integer"
+        },
+        "minIops": {
+          "description": "Minimum IOPS for customized offerings",
+          "format": "int64",
+          "type": "integer"
+        },
+        "name": {
+          "description": "Offering name",
+          "type": "string"
+        },
+        "offerHA": {
+          "description": "Whether the offering supports high availability",
+          "type": "boolean"
+        },
+        "storageType": {
+          "description": "Storage type (local or shared)",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "v1CloudStackOfferings": {
+      "description": "List of CloudStack compute offerings",
+      "properties": {
+        "offerings": {
+          "items": {
+            "$ref": "#/definitions/v1CloudStackOffering"
+          },
+          "type": "array",
+          "uniqueItems": true
+        }
+      },
+      "type": "object"
+    },
+    "v1CloudStackProject": {
+      "description": "CloudStack project",
+      "properties": {
+        "id": {
+          "description": "Project ID",
+          "type": "string"
+        },
+        "name": {
+          "description": "Project name",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "v1CloudStackProjects": {
+      "description": "List of CloudStack projects",
+      "properties": {
+        "projects": {
+          "items": {
+            "$ref": "#/definitions/v1CloudStackProject"
+          },
+          "type": "array",
+          "uniqueItems": true
+        }
+      },
+      "type": "object"
+    },
+    "v1CloudStackResource": {
+      "description": "Cloud stack resource information",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "v1CloudStackTemplate": {
+      "description": "CloudStack template",
+      "properties": {
+        "id": {
+          "description": "Template ID",
+          "type": "string"
+        },
+        "name": {
+          "description": "Template name",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "v1CloudStackTemplates": {
+      "description": "List of CloudStack templates",
+      "properties": {
+        "templates": {
+          "items": {
+            "$ref": "#/definitions/v1CloudStackTemplate"
+          },
+          "type": "array",
+          "uniqueItems": true
+        }
+      },
+      "type": "object"
+    },
+    "v1CloudStackVPCSpec": {
+      "description": "VPC configuration for CloudStack networks",
+      "properties": {
+        "cidr": {
+          "description": "CIDR block for the VPC",
+          "type": "string"
+        },
+        "id": {
+          "description": "VPC id",
+          "type": "string"
+        },
+        "name": {
+          "description": "VPC name",
+          "type": "string"
+        },
+        "offering": {
+          "description": "VPC offering name",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "v1CloudStackVpc": {
+      "description": "CloudStack Vpc",
+      "properties": {
+        "cidr": {
+          "description": "Vpc Cidr",
+          "type": "string"
+        },
+        "domainId": {
+          "description": "Domain Id associated with Vpc",
+          "type": "string"
+        },
+        "id": {
+          "description": "Vpc id",
+          "type": "string"
+        },
+        "name": {
+          "description": "Vpc name",
+          "type": "string"
+        },
+        "offeringId": {
+          "description": "Vpc offering Id",
+          "type": "string"
+        },
+        "projectId": {
+          "description": "Project Id associated with Vpc",
+          "type": "string"
+        },
+        "zoneId": {
+          "description": "Zone Id associated with Vpc",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "v1CloudStackVpcs": {
+      "description": "List of CloudStack SSH key pairs",
+      "properties": {
+        "items": {
+          "items": {
+            "$ref": "#/definitions/v1CloudStackVpc"
+          },
+          "type": "array",
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "items"
+      ],
+      "type": "object"
+    },
+    "v1CloudStackZone": {
+      "description": "CloudStack zone",
+      "properties": {
+        "id": {
+          "description": "Zone ID",
+          "type": "string"
+        },
+        "name": {
+          "description": "Zone name",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "v1CloudStackZoneSpec": {
+      "description": "CloudStack zone with its network configuration",
+      "properties": {
+        "id": {
+          "description": "Zone Id",
+          "type": "string"
+        },
+        "name": {
+          "description": "Zone name",
+          "type": "string"
+        },
+        "network": {
+          "$ref": "#/definitions/v1CloudStackNetworkSpec",
+          "description": "Network configuration specific to this zone"
+        }
+      },
+      "type": "object"
+    },
+    "v1CloudStackZones": {
+      "description": "List of CloudStack zones",
+      "properties": {
+        "zones": {
+          "items": {
+            "$ref": "#/definitions/v1CloudStackZone"
+          },
+          "type": "array",
+          "uniqueItems": true
+        }
+      },
+      "type": "object"
+    },
+    "v1CloudType": {
+      "default": "all",
+      "enum": [
+        "all",
+        "aws",
+        "azure",
+        "gcp",
+        "vsphere",
+        "openstack",
+        "maas",
+        "nested",
+        "baremetal",
+        "eks",
+        "aks",
+        "edge",
+        "apache-cloudstack",
+        "edge-native",
+        "generic",
+        "gke"
+      ],
+      "type": "string"
     },
     "v1CloudWatch": {
       "properties": {
@@ -5692,6 +6711,10 @@
           "$ref": "#/definitions/v1MachineManagementConfig",
           "description": "MachineManagementConfig defines the management configurations for the node. Patching OS security updates etc can be configured by user."
         },
+        "timezone": {
+          "description": "Timezone of a cluster in IANA standard format. It is mandatory field if cluster is deployed through template, else it is optional",
+          "type": "string"
+        },
         "updateWorkerPoolsInParallel": {
           "description": "UpdateWorkerPoolsInParallel is used to decide if the update of workerpools happen in parallel. When this flag is false, the workerpools are updated sequentially.",
           "type": "boolean"
@@ -5723,6 +6746,10 @@
         "resources": {
           "$ref": "#/definitions/v1ClusterResourcesEntity"
         },
+        "timezone": {
+          "description": "Timezone of a cluster in IANA standard format. It is mandatory field if cluster is deployed through template, else it is optional",
+          "type": "string"
+        },
         "updateWorkerPoolsInParallel": {
           "type": "boolean"
         }
@@ -5734,6 +6761,10 @@
         "hostClusterConfig": {
           "$ref": "#/definitions/v1HostClusterConfigResponse",
           "description": "HostClusterConfig defines the configuration entity of host clusters config entity"
+        },
+        "timezone": {
+          "description": "Timezone of a cluster in IANA standard format. It is mandatory field if cluster is deployed through template, else it is optional",
+          "type": "string"
         }
       },
       "type": "object"
@@ -6652,6 +7683,10 @@
         "isAvailable": {
           "type": "boolean",
           "x-omitempty": false
+        },
+        "isTemplateVariableResolutionPending": {
+          "type": "boolean",
+          "x-omitempty": false
         }
       }
     },
@@ -6911,6 +7946,9 @@
           "type": "array",
           "uniqueItems": true
         },
+        "resourceType": {
+          "$ref": "#/definitions/v1ClusterProfileResourceType"
+        },
         "scope": {
           "$ref": "#/definitions/v1ClusterProfileScope"
         },
@@ -7105,6 +8143,14 @@
       },
       "type": "object"
     },
+    "v1ClusterProfileResourceType": {
+      "description": "Filter cluster profiles by target resource type - 'spectrocluster' for profiles suitable to launch clusters, 'clustertemplate' for profiles suitable to create/edit cluster template",
+      "enum": [
+        "spectrocluster",
+        "clustertemplate"
+      ],
+      "type": "string"
+    },
     "v1ClusterProfileScope": {
       "enum": [
         "system",
@@ -7195,6 +8241,12 @@
           "type": "boolean",
           "x-omitempty": false
         },
+        "inUseClusterTemplates": {
+          "items": {
+            "$ref": "#/definitions/v1ProjectResourceReference"
+          },
+          "type": "array"
+        },
         "inUseClusterUids": {
           "description": "Deprecated. Use inUseClusters",
           "items": {
@@ -7220,6 +8272,12 @@
       "properties": {
         "fips": {
           "$ref": "#/definitions/v1ClusterProfileFips"
+        },
+        "inUseClusterTemplates": {
+          "items": {
+            "$ref": "#/definitions/v1ObjectEntity"
+          },
+          "type": "array"
         },
         "inUseClusterUids": {
           "description": "Deprecated. Use inUseClusters",
@@ -7719,6 +8777,136 @@
       ],
       "type": "object"
     },
+    "v1ClusterReconcile": {
+      "description": "Cluster reconcile document containing all reconciliation information",
+      "properties": {
+        "metadata": {
+          "$ref": "#/definitions/v1ObjectMeta"
+        },
+        "spec": {
+          "$ref": "#/definitions/v1ClusterReconcileSpec"
+        },
+        "status": {
+          "$ref": "#/definitions/v1ClusterReconcileStatus"
+        }
+      },
+      "type": "object"
+    },
+    "v1ClusterReconcileLog": {
+      "description": "Cluster reconciliation log entry",
+      "properties": {
+        "appliedTimestamp": {
+          "description": "Timestamp when this log entry was created",
+          "format": "date-time",
+          "type": "string"
+        },
+        "message": {
+          "description": "Log message",
+          "type": "string"
+        },
+        "profileUids": {
+          "description": "List of profile UIDs involved in this reconciliation",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "state": {
+          "description": "Reconciliation state for this log entry",
+          "enum": [
+            "Created",
+            "Pending",
+            "InProgress",
+            "Applied",
+            "Failed"
+          ],
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "v1ClusterReconcileSpec": {
+      "description": "Cluster reconcile specification",
+      "properties": {
+        "profiles": {
+          "description": "List of cluster profiles with reconciliation information",
+          "items": {
+            "$ref": "#/definitions/v1ClusterTemplateProfileVariables"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "v1ClusterReconcileStatus": {
+      "description": "Cluster reconcile status",
+      "properties": {
+        "lastAppliedTimestamp": {
+          "description": "Timestamp when reconciliation was last applied",
+          "format": "date-time",
+          "type": "string"
+        },
+        "message": {
+          "description": "Status message",
+          "type": "string"
+        },
+        "state": {
+          "description": "Current reconciliation state",
+          "enum": [
+            "Created",
+            "Pending",
+            "InProgress",
+            "Applied",
+            "Failed"
+          ],
+          "type": "string"
+        },
+        "updateLogs": {
+          "description": "List of reconciliation update logs",
+          "items": {
+            "$ref": "#/definitions/v1ClusterReconcileLog"
+          },
+          "type": "array"
+        },
+        "variableStatus": {
+          "$ref": "#/definitions/v1ClusterVariableReconcileStatus"
+        }
+      },
+      "type": "object"
+    },
+    "v1ClusterReconcileStatusCounts": {
+      "description": "Cluster reconcile metadata",
+      "properties": {
+        "clusters": {
+          "description": "Clusters grouped by reconciliation status",
+          "properties": {
+            "applied": {
+              "description": "List of UIDs for clusters in applied state",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "failed": {
+              "description": "List of UIDs for clusters in failed state",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "pending": {
+              "description": "List of UIDs for clusters in pending state",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          "type": "object"
+        }
+      },
+      "type": "object"
+    },
     "v1ClusterRefs": {
       "description": "Cluster Object References",
       "properties": {
@@ -8091,6 +9279,629 @@
         }
       }
     },
+    "v1ClusterTemplate": {
+      "description": "Cluster template entity information",
+      "properties": {
+        "metadata": {
+          "$ref": "#/definitions/v1ObjectMeta"
+        },
+        "spec": {
+          "$ref": "#/definitions/v1ClusterTemplateSpec"
+        },
+        "status": {
+          "$ref": "#/definitions/v1ClusterTemplateStatus"
+        }
+      },
+      "type": "object"
+    },
+    "v1ClusterTemplateEntity": {
+      "description": "Cluster template entity information",
+      "properties": {
+        "metadata": {
+          "$ref": "#/definitions/v1ObjectMetaInputEntity"
+        },
+        "spec": {
+          "$ref": "#/definitions/v1ClusterTemplateEntitySpec"
+        }
+      },
+      "type": "object"
+    },
+    "v1ClusterTemplateEntitySpec": {
+      "description": "Cluster template specification",
+      "properties": {
+        "cloudType": {
+          "description": "Type of cloud provider",
+          "type": "string"
+        },
+        "policies": {
+          "description": "List of policy references",
+          "items": {
+            "$ref": "#/definitions/v1PolicyRef"
+          },
+          "type": "array"
+        },
+        "profiles": {
+          "description": "List of cluster profile references",
+          "items": {
+            "$ref": "#/definitions/v1ClusterTemplateProfile"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "v1ClusterTemplateMaintenanceStatus": {
+      "description": "Cluster template maintenance status",
+      "properties": {
+        "nextWindowEndTime": {
+          "description": "Next maintenance window end time",
+          "format": "date-time",
+          "type": "string"
+        },
+        "nextWindowStartTime": {
+          "description": "Next maintenance window start time",
+          "format": "date-time",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "v1ClusterTemplateMetadata": {
+      "properties": {
+        "name": {
+          "description": "The name of the cluster template",
+          "type": "string"
+        },
+        "projectUid": {
+          "description": "The project UID of the cluster template",
+          "type": "string"
+        },
+        "uid": {
+          "description": "The uid of the cluster template",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "v1ClusterTemplatePoliciesUpdateEntity": {
+      "description": "Cluster template policies update entity",
+      "properties": {
+        "policies": {
+          "description": "List of spc policy references to be updated in the cluster template",
+          "items": {
+            "$ref": "#/definitions/v1PolicyRef"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "policies"
+      ],
+      "type": "object"
+    },
+    "v1ClusterTemplateProfile": {
+      "description": "Cluster template profile information",
+      "properties": {
+        "uid": {
+          "description": "UID of the cluster profile",
+          "type": "string"
+        },
+        "variables": {
+          "description": "List of cluster profile variable values and assign strategies. This is specified when clusters are launched from the template",
+          "items": {
+            "$ref": "#/definitions/v1ClusterTemplateVariable"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "v1ClusterTemplateProfileVariable": {
+      "description": "Cluster template profile information",
+      "properties": {
+        "uid": {
+          "description": "UID of the cluster profile",
+          "type": "string"
+        },
+        "variables": {
+          "description": "List of cluster profile variable values for the cluster to be updated.",
+          "items": {
+            "$ref": "#/definitions/v1SpectroClusterVariable"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "v1ClusterTemplateProfileVariableWithClusters": {
+      "description": "Variable with cluster assignments",
+      "properties": {
+        "clusters": {
+          "description": "List of clusters with variable assignments",
+          "items": {
+            "$ref": "#/definitions/v1ClusterTemplateVariableClusterAssignment"
+          },
+          "type": "array"
+        },
+        "variable": {
+          "$ref": "#/definitions/v1Variable",
+          "description": "Variable field with schema definition",
+          "type": "object"
+        }
+      },
+      "required": [
+        "variable",
+        "clusters"
+      ],
+      "type": "object"
+    },
+    "v1ClusterTemplateProfileVariables": {
+      "description": "Profile variables with grouped resolved and unresolved variables",
+      "properties": {
+        "name": {
+          "description": "Profile name",
+          "type": "string"
+        },
+        "uid": {
+          "description": "Profile UID",
+          "type": "string"
+        },
+        "variables": {
+          "description": "List of resolved and unresolved variables belonging to a cluster launched from template",
+          "properties": {
+            "resolvedVariables": {
+              "description": "List of resolved variables",
+              "items": {
+                "$ref": "#/definitions/v1SpectroClusterVariable"
+              },
+              "type": "array"
+            },
+            "unResolvedVariables": {
+              "description": "List of unresolved variables",
+              "items": {
+                "$ref": "#/definitions/v1SpectroClusterVariable"
+              },
+              "type": "array"
+            }
+          },
+          "type": "object"
+        }
+      },
+      "required": [
+        "uid"
+      ],
+      "type": "object"
+    },
+    "v1ClusterTemplateProfileVariablesGroup": {
+      "description": "Profile with variables and cluster assignments",
+      "properties": {
+        "uid": {
+          "description": "UID of the cluster profile",
+          "type": "string"
+        },
+        "variables": {
+          "description": "List of variables with cluster assignments",
+          "items": {
+            "$ref": "#/definitions/v1ClusterTemplateVariableClusterMapping"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "uid",
+        "variables"
+      ],
+      "type": "object"
+    },
+    "v1ClusterTemplateProfileVariablesResponse": {
+      "description": "Response for retrieving variables for a specific profile in a cluster template",
+      "properties": {
+        "variables": {
+          "description": "List of variables with cluster assignments",
+          "items": {
+            "$ref": "#/definitions/v1ClusterTemplateProfileVariableWithClusters"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "v1ClusterTemplateProfilesUpdateEntity": {
+      "description": "Cluster template profiles update entity",
+      "properties": {
+        "profiles": {
+          "description": "List of cluster profile references with updated variable values and assign strategies",
+          "items": {
+            "$ref": "#/definitions/v1ClusterTemplateProfile"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "profiles"
+      ],
+      "type": "object"
+    },
+    "v1ClusterTemplateProfilesVariablesBatchEntity": {
+      "description": "Cluster template profiles variables batch entity",
+      "properties": {
+        "profiles": {
+          "description": "List of profiles with variables and cluster assignments",
+          "items": {
+            "$ref": "#/definitions/v1ClusterTemplateProfileVariablesGroup"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "profiles"
+      ],
+      "type": "object"
+    },
+    "v1ClusterTemplateRef": {
+      "description": "Cluster template configuration to launch a cluster from a template.",
+      "properties": {
+        "uid": {
+          "description": "Uid of the cluster template from which the cluster is created. When a cluster is launched using a template, the packs configuration is automatically derived from the template and does not need to be set manually.",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "v1ClusterTemplateSpcRef": {
+      "description": "Cluster template cluster reference",
+      "properties": {
+        "clusterUid": {
+          "description": "UID of the cluster",
+          "type": "string"
+        },
+        "name": {
+          "description": "Name of the cluster",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "v1ClusterTemplateSpec": {
+      "description": "Cluster template specification",
+      "properties": {
+        "cloudType": {
+          "description": "Type of cloud provider",
+          "type": "string"
+        },
+        "clusters": {
+          "additionalProperties": {
+            "$ref": "#/definitions/v1ClusterTemplateSpcRef"
+          },
+          "description": "Map of cluster references with cluster UID as key",
+          "type": "object"
+        },
+        "policies": {
+          "description": "List of policy references",
+          "items": {
+            "$ref": "#/definitions/v1PolicyRef"
+          },
+          "type": "array"
+        },
+        "profiles": {
+          "description": "List of cluster profile references",
+          "items": {
+            "$ref": "#/definitions/v1ClusterTemplateProfile"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "v1ClusterTemplateSpectroClusterMeta": {
+      "properties": {
+        "name": {
+          "description": "The name of the spectro cluster",
+          "type": "string"
+        },
+        "projectUid": {
+          "description": "The project UID of the spectro cluster",
+          "type": "string"
+        },
+        "uid": {
+          "description": "The UID of the spectro cluster",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "v1ClusterTemplateStatus": {
+      "description": "Cluster template status",
+      "properties": {
+        "clusterStatusCounts": {
+          "$ref": "#/definitions/v1ClusterReconcileStatusCounts"
+        },
+        "clusterVariables": {
+          "$ref": "#/definitions/v1ClusterVariableStatus"
+        },
+        "maintenance": {
+          "$ref": "#/definitions/v1ClusterTemplateMaintenanceStatus"
+        },
+        "state": {
+          "description": "Current state of the cluster template",
+          "enum": [
+            "Pending",
+            "Applied",
+            "Failed",
+            "PartiallyApplied"
+          ],
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "v1ClusterTemplateSummary": {
+      "description": "Cluster template summary",
+      "properties": {
+        "metadata": {
+          "$ref": "#/definitions/v1ObjectMeta"
+        },
+        "spec": {
+          "$ref": "#/definitions/v1ClusterTemplateSummarySpec"
+        },
+        "status": {
+          "$ref": "#/definitions/v1ClusterTemplateSummaryStatus"
+        }
+      },
+      "type": "object"
+    },
+    "v1ClusterTemplateSummarySpec": {
+      "properties": {
+        "cloudType": {
+          "$ref": "#/definitions/v1CloudType"
+        },
+        "clusters": {
+          "items": {
+            "$ref": "#/definitions/v1ClusterTemplateSpectroClusterMeta"
+          },
+          "type": "array",
+          "uniqueItems": true
+        }
+      },
+      "type": "object"
+    },
+    "v1ClusterTemplateSummaryStatus": {
+      "description": "Provides status information for cluster templates like in use cluster which are launched using the template",
+      "properties": {
+        "inUseClusters": {
+          "items": {
+            "$ref": "#/definitions/v1ObjectEntity"
+          },
+          "type": "array"
+        },
+        "state": {
+          "description": "The reconciliation state of the cluster template",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "v1ClusterTemplateTags": {
+      "description": "Cluster template tags response",
+      "properties": {
+        "tags": {
+          "description": "Array of cluster template tags",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "v1ClusterTemplateUpgradeSpec": {
+      "properties": {
+        "clusterUids": {
+          "description": "List of cluster UIDs to upgrade. If no clusterUid's specified then all clusters launched from the specified cluster template will be upgraded",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "v1ClusterTemplateVariable": {
+      "description": "Cluster template variable",
+      "properties": {
+        "assignStrategy": {
+          "description": "Assignment strategy for the variable",
+          "enum": [
+            "all",
+            "cluster"
+          ],
+          "type": "string"
+        },
+        "clusters": {
+          "description": "List of clusters with the specific variable",
+          "items": {
+            "$ref": "#/definitions/v1ClusterVariableValue"
+          },
+          "type": "array"
+        },
+        "name": {
+          "description": "Name of the variable",
+          "type": "string"
+        },
+        "value": {
+          "description": "Value of the variable to be applied to all clusters launched from this template. This value is specified when assignStrategy is set to all",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "v1ClusterTemplateVariableClusterAssignment": {
+      "description": "Cluster variable assignment information",
+      "properties": {
+        "assignedBy": {
+          "description": "Specifies the actor who has made the current variable assignment",
+          "enum": [
+            "spectrocluster",
+            "clustertemplate"
+          ],
+          "type": "string"
+        },
+        "assignedValue": {
+          "description": "Value assigned to the variable",
+          "type": "string"
+        },
+        "assignmentState": {
+          "description": "State of the variable assignment",
+          "enum": [
+            "Pending",
+            "Assigned"
+          ],
+          "type": "string"
+        },
+        "uid": {
+          "description": "Cluster UID",
+          "type": "string"
+        },
+        "value": {
+          "description": "Current running value of the variable",
+          "type": "string"
+        }
+      },
+      "required": [
+        "uid",
+        "assignmentState"
+      ],
+      "type": "object"
+    },
+    "v1ClusterTemplateVariableClusterMapping": {
+      "description": "Variable with cluster assignments",
+      "properties": {
+        "clusters": {
+          "description": "List of clusters with variable values",
+          "items": {
+            "$ref": "#/definitions/v1ClusterVariableValue"
+          },
+          "type": "array"
+        },
+        "name": {
+          "description": "Name of the variable",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "clusters"
+      ],
+      "type": "object"
+    },
+    "v1ClusterTemplateVariablesUpdateEntity": {
+      "description": "Cluster template variables update entity",
+      "properties": {
+        "profiles": {
+          "description": "List of cluster profile references belonging to the cluster",
+          "items": {
+            "$ref": "#/definitions/v1ClusterTemplateProfileVariable"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "profiles"
+      ],
+      "type": "object"
+    },
+    "v1ClusterTemplatesFilterSpec": {
+      "description": "Cluster template filter spec",
+      "properties": {
+        "cloudType": {
+          "items": {
+            "$ref": "#/definitions/v1CloudType"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "clusterTemplateName": {
+          "$ref": "#/definitions/v1FilterString"
+        },
+        "policyUid": {
+          "$ref": "#/definitions/v1FilterString"
+        },
+        "projectUid": {
+          "$ref": "#/definitions/v1FilterString"
+        },
+        "tags": {
+          "$ref": "#/definitions/v1FilterArray"
+        }
+      }
+    },
+    "v1ClusterTemplatesFilterSummarySpec": {
+      "description": "Cluster templates filter summary spec",
+      "properties": {
+        "filter": {
+          "$ref": "#/definitions/v1ClusterTemplatesFilterSpec"
+        },
+        "sort": {
+          "items": {
+            "$ref": "#/definitions/v1ClusterTemplatesSortSpec"
+          },
+          "type": "array",
+          "uniqueItems": true
+        }
+      }
+    },
+    "v1ClusterTemplatesMetadata": {
+      "properties": {
+        "items": {
+          "items": {
+            "$ref": "#/definitions/v1ClusterTemplateMetadata"
+          },
+          "type": "array",
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "items"
+      ],
+      "type": "object"
+    },
+    "v1ClusterTemplatesSortFields": {
+      "enum": [
+        "clusterTemplateName",
+        "cloudType",
+        "creationTimestamp",
+        "lastModifiedTimestamp"
+      ],
+      "type": "string",
+      "x-nullable": true
+    },
+    "v1ClusterTemplatesSortSpec": {
+      "properties": {
+        "field": {
+          "$ref": "#/definitions/v1ClusterTemplatesSortFields"
+        },
+        "order": {
+          "$ref": "#/definitions/v1SortOrder"
+        }
+      }
+    },
+    "v1ClusterTemplatesSummary": {
+      "properties": {
+        "items": {
+          "items": {
+            "$ref": "#/definitions/v1ClusterTemplateSummary"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "listmeta": {
+          "$ref": "#/definitions/v1ListMetaData"
+        }
+      },
+      "required": [
+        "items"
+      ],
+      "type": "object"
+    },
     "v1ClusterType": {
       "default": "PureManage",
       "enum": [
@@ -8125,6 +9936,48 @@
           "type": "string"
         },
         "uid": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "v1ClusterVariableReconcileStatus": {
+      "description": "Cluster variable reconciliation status",
+      "properties": {
+        "state": {
+          "description": "Variable reconciliation state",
+          "enum": [
+            "Resolved",
+            "Unresolved"
+          ],
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "v1ClusterVariableStatus": {
+      "description": "Cluster variable status counts categorized by resolution state",
+      "properties": {
+        "resolved": {
+          "description": "The number of clusters in which all variables have been successfully resolved",
+          "type": "integer"
+        },
+        "unResolved": {
+          "description": "The number of clusters that have unresolved variables requiring attention",
+          "type": "integer"
+        }
+      },
+      "type": "object"
+    },
+    "v1ClusterVariableValue": {
+      "description": "Cluster along with specific variable value",
+      "properties": {
+        "uid": {
+          "description": "UID of the cluster",
+          "type": "string"
+        },
+        "value": {
+          "description": "Value of the variable",
           "type": "string"
         }
       },
@@ -8207,6 +10060,10 @@
         },
         "template": {
           "$ref": "#/definitions/v1VmVirtualMachineInstanceTemplateSpec"
+        },
+        "updateVolumesStrategy": {
+          "description": "UpdateVolumesStrategy is the strategy to apply on volumes updates",
+          "type": "string"
         }
       },
       "required": [
@@ -9441,6 +11298,10 @@
         },
         "resources": {
           "$ref": "#/definitions/v1ClusterResourcesEntity"
+        },
+        "timezone": {
+          "description": "The timezone field is mandatory if cluster is deployed through template, else it is optional",
+          "type": "string"
         }
       },
       "type": "object"
@@ -10152,7 +12013,8 @@
           "default": "helm",
           "enum": [
             "helm",
-            "pack"
+            "pack",
+            "zarf"
           ],
           "type": "string"
         },
@@ -10235,6 +12097,16 @@
         "project": {
           "$ref": "#/definitions/v1ObjectEntity",
           "description": "ProjectUid where the edgehost will be placed during auto registration",
+          "x-omitempty": false
+        },
+        "remoteSsh": {
+          "default": "enabled",
+          "description": "RemoteSsh controls the remote SSH access for this edge host",
+          "enum": [
+            "enabled",
+            "disabled"
+          ],
+          "type": "string",
           "x-omitempty": false
         }
       },
@@ -12020,6 +13892,26 @@
       ],
       "type": "object"
     },
+    "v1EventsMigrate": {
+      "description": "Event migration request",
+      "properties": {
+        "sourceVersion": {
+          "enum": [
+            "v1",
+            "v2"
+          ],
+          "type": "string"
+        },
+        "targetVersion": {
+          "enum": [
+            "v1",
+            "v2"
+          ],
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
     "v1EventsObjectsEntity": {
       "properties": {
         "resourceType": {
@@ -12515,10 +14407,6 @@
         "jsonCredentials": {
           "description": "Gcp cloud account json credentials",
           "type": "string"
-        },
-        "jsonCredentialsFileUid": {
-          "description": "Deprecated - Use jsonCredentials for Gcp account credentials; Reference of the credentials stored in the file",
-          "type": "string"
         }
       },
       "type": "object"
@@ -12549,10 +14437,6 @@
         "jsonCredentials": {
           "description": "Gcp cloud account json credentials",
           "type": "string"
-        },
-        "jsonCredentialsFileName": {
-          "description": "Reference of the credentials stored in the file",
-          "type": "string"
         }
       },
       "type": "object"
@@ -12562,10 +14446,6 @@
       "properties": {
         "jsonCredentials": {
           "description": "Gcp cloud account json credentials",
-          "type": "string"
-        },
-        "jsonCredentialsFileUid": {
-          "description": "Deprecated - Use jsonCredentials for Gcp account credentials; Reference of the credentials stored in the file",
           "type": "string"
         }
       },
@@ -13256,6 +15136,10 @@
           "description": "DiskGiB is the size of a virtual machine's disk, in GiB",
           "format": "int32",
           "type": "integer"
+        },
+        "id": {
+          "description": "Instance type ID",
+          "type": "string"
         },
         "memoryMiB": {
           "description": "MemoryMiB is the size of a virtual machine's memory, in MiB",
@@ -15619,12 +17503,29 @@
           "description": "Domain name of the cluster to be provisioned",
           "type": "string"
         },
+        "enableLxdVm": {
+          "description": "enableLxdVm controls MaaS KVM host enablement for the Host ControlPlane cluster only.\nWhen true, Palette configures MaasMachineTemplate LXD settings so LXD initialization\nis triggered on nodes of this (host) cluster. This does not affect workload clusters.\nCannot be enabled for clusters where useLxdVm is enabled for any of the control plane machine pool configs.",
+          "type": "boolean",
+          "x-omitempty": false
+        },
+        "ntpServers": {
+          "description": "NTPServers is a list of NTP servers to use instead of the machine image's default NTP server list.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
         "sshKeys": {
           "description": "SSH keys specifies a list of ssh authorized keys for the 'spectro' user",
           "items": {
             "type": "string"
           },
           "type": "array"
+        },
+        "staticIp": {
+          "description": "whether this cluster should use dhcp or static IP, if false, use DHCP if this is set, then all machinepools should have staticIP with provided IPPool adding this as an additional standalone flag without relating to placement.Nework main reason is to enable more validation for placement.Network.StaticIP which should come together with valid Network.IPPool and Network.Name",
+          "type": "boolean",
+          "x-omitempty": false
         }
       },
       "required": [
@@ -15678,6 +17579,11 @@
           "format": "int32",
           "type": "integer"
         },
+        "minDiskSizeInGB": {
+          "description": "Minimum disk size in GiB",
+          "format": "int32",
+          "type": "integer"
+        },
         "minMemInMB": {
           "description": "Minimum memory in MiB",
           "format": "int32",
@@ -15719,8 +17625,16 @@
         "instanceType": {
           "$ref": "#/definitions/v1MaasInstanceType"
         },
+        "network": {
+          "$ref": "#/definitions/v1MaasNetworkConfigEntity"
+        },
         "resourcePool": {
           "type": "string"
+        },
+        "useLxdVm": {
+          "description": "useLxdVm enables on-demand LXD VM provisioning for this machine pool (workload clusters only).\nWhen true, machines in this pool are created as MAAS LXD-backed VMs instead of bare metal.",
+          "type": "boolean",
+          "x-omitempty": false
         }
       },
       "type": "object"
@@ -15736,6 +17650,10 @@
         "instanceType": {
           "$ref": "#/definitions/v1MaasInstanceType"
         },
+        "network": {
+          "$ref": "#/definitions/v1MaasNetworkConfigEntity",
+          "description": "network info"
+        },
         "resourcePool": {
           "description": "the resource pool",
           "type": "string"
@@ -15746,6 +17664,11 @@
             "type": "string"
           },
           "type": "array"
+        },
+        "useLxdVm": {
+          "description": "useLxdVm enables on-demand LXD VM provisioning for this machine pool (workload clusters only).\nWhen true, machines in this pool are created as MAAS LXD-backed VMs instead of bare metal.",
+          "type": "boolean",
+          "x-omitempty": false
         }
       },
       "required": [
@@ -15807,6 +17730,10 @@
         "name": {
           "type": "string"
         },
+        "network": {
+          "$ref": "#/definitions/v1MaasNetworkConfig",
+          "description": "network info"
+        },
         "nodeRepaveInterval": {
           "description": "Minimum number of seconds a node should be Ready, before the next node is selected for repave. Applicable only for workerpools in infrastructure cluster",
           "format": "int32",
@@ -15842,6 +17769,11 @@
         "useControlPlaneAsWorker": {
           "description": "if IsControlPlane==true && useControlPlaneAsWorker==true, then will remove control plane taint this will not be used for worker pools",
           "type": "boolean"
+        },
+        "useLxdVm": {
+          "description": "useLxdVm enables on-demand LXD VM provisioning for this machine pool (workload clusters only).\nWhen true, machines in this pool are created as MAAS LXD-backed VMs instead of bare metal.\nCannot be enabled for control plane machine pools when enableLxdVm is enabled in the cluster config.",
+          "type": "boolean",
+          "x-omitempty": false
         }
       },
       "required": [
@@ -15897,6 +17829,52 @@
       },
       "required": [
         "items"
+      ],
+      "type": "object"
+    },
+    "v1MaasNetworkConfig": {
+      "properties": {
+        "ipPool": {
+          "$ref": "#/definitions/v1IPPool",
+          "description": "when staticIP=true, need to provide IPPool"
+        },
+        "networkName": {
+          "description": "NetworkName is the name of the network in which VMs are created/located.",
+          "type": "string"
+        },
+        "parentPoolRef": {
+          "$ref": "#/definitions/v1ObjectReference",
+          "description": "ParentPoolRef reference to the ParentPool which allocates IPs for this IPPool"
+        },
+        "staticIp": {
+          "description": "support dhcp or static IP, if false, use DHCP",
+          "type": "boolean",
+          "x-omitempty": false
+        }
+      },
+      "required": [
+        "networkName"
+      ],
+      "type": "object"
+    },
+    "v1MaasNetworkConfigEntity": {
+      "properties": {
+        "networkName": {
+          "description": "NetworkName is the name of the network in which VMs are created/located.",
+          "type": "string"
+        },
+        "parentPoolUid": {
+          "description": "ParentPoolRef Uid to the ParentPool which allocates IPs for this IPPool",
+          "type": "string"
+        },
+        "staticIp": {
+          "description": "support dhcp or static IP, if false, use DHCP",
+          "type": "boolean",
+          "x-omitempty": false
+        }
+      },
+      "required": [
+        "networkName"
       ],
       "type": "object"
     },
@@ -16076,6 +18054,20 @@
       ],
       "type": "object"
     },
+    "v1MachineAddress": {
+      "description": "Machine network address",
+      "properties": {
+        "address": {
+          "description": "IP address",
+          "type": "string"
+        },
+        "type": {
+          "description": "Address type (InternalIP, ExternalIP)",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
     "v1MachineCertificate": {
       "description": "K8 Certificates for control plane nodes",
       "properties": {
@@ -16192,6 +18184,82 @@
           "description": "OS patch config contains properties to patch node os with latest security packages. \nIf OsPatchConfig is not provided then node os will not be patched with latest security updates.\nNote: For edge based cluster (like edge-native type) the osPatchConfig is NOT applicable, the values will be ignored.\n"
         }
       },
+      "type": "object"
+    },
+    "v1MachinePoolBaseConfig": {
+      "properties": {
+        "additionalLabels": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "additionalLabels",
+          "type": "object"
+        },
+        "additionalTags": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "AdditionalTags is an optional set of tags to add to resources managed by the provider, in addition to the ones added by default. For eg., tags for EKS nodeGroup or EKS NodegroupIAMRole",
+          "type": "object"
+        },
+        "isControlPlane": {
+          "description": "whether this pool is for control plane",
+          "type": "boolean"
+        },
+        "labels": {
+          "description": "labels for this pool, example: control-plane/worker, gpu, windows",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "machinePoolProperties": {
+          "$ref": "#/definitions/v1MachinePoolProperties"
+        },
+        "maxSize": {
+          "description": "max size of the pool, for scaling",
+          "format": "int32",
+          "type": "integer"
+        },
+        "minSize": {
+          "description": "min size of the pool, for scaling",
+          "format": "int32",
+          "type": "integer"
+        },
+        "name": {
+          "type": "string"
+        },
+        "nodeRepaveInterval": {
+          "description": "Minimum number of seconds a node should be Ready, before the next node is selected for repave. Applicable only for workerpools in infrastructure cluster",
+          "format": "int32",
+          "type": "integer"
+        },
+        "size": {
+          "description": "size of the pool, number of machines",
+          "format": "int32",
+          "type": "integer"
+        },
+        "taints": {
+          "description": "control plane or worker taints",
+          "items": {
+            "$ref": "#/definitions/v1Taint"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "updateStrategy": {
+          "$ref": "#/definitions/v1UpdateStrategy",
+          "description": "rolling update strategy for this machinepool if not specified, will use ScaleOut"
+        },
+        "useControlPlaneAsWorker": {
+          "description": "if IsControlPlane==true && useControlPlaneAsWorker==true, then will remove control plane taint this will not be used for worker pools",
+          "type": "boolean",
+          "x-omitempty": false
+        }
+      },
+      "required": [
+        "isControlPlane"
+      ],
       "type": "object"
     },
     "v1MachinePoolConfigEntity": {
@@ -18224,6 +20292,25 @@
       },
       "type": "object"
     },
+    "v1ObjectStateEntity": {
+      "description": "Object identity meta",
+      "properties": {
+        "name": {
+          "description": "Name of the object",
+          "type": "string"
+        },
+        "state": {
+          "description": "State of the object",
+          "type": "string",
+          "x-omitempty": false
+        },
+        "uid": {
+          "description": "Uid of the object",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
     "v1ObjectTagsEntity": {
       "description": "Object identity meta with tags",
       "properties": {
@@ -19478,6 +21565,58 @@
         }
       },
       "type": "object"
+    },
+    "v1OverlordCloudStackAccountCreate": {
+      "properties": {
+        "account": {
+          "$ref": "#/definitions/v1CloudStackCloudAccount"
+        },
+        "name": {
+          "description": "Name for the private gateway & cloud account",
+          "type": "string"
+        },
+        "shareWithProjects": {
+          "type": "boolean",
+          "x-omitempty": false
+        }
+      }
+    },
+    "v1OverlordCloudStackAccountEntity": {
+      "properties": {
+        "account": {
+          "$ref": "#/definitions/v1CloudStackCloudAccount"
+        },
+        "shareWithProjects": {
+          "type": "boolean",
+          "x-omitempty": false
+        }
+      }
+    },
+    "v1OverlordCloudStackCloudConfig": {
+      "properties": {
+        "clusterConfig": {
+          "$ref": "#/definitions/v1CloudStackClusterConfig"
+        },
+        "clusterProfiles": {
+          "description": "Cluster profiles pack configuration for private gateway cluster",
+          "items": {
+            "$ref": "#/definitions/v1SpectroClusterProfileEntity"
+          },
+          "type": "array"
+        },
+        "clusterSettings": {
+          "$ref": "#/definitions/v1ClusterConfigEntity",
+          "description": "clusterSettings is the generic configuration related to a cluster like OS patch, Rbac, Namespace allocation"
+        },
+        "machineConfig": {
+          "$ref": "#/definitions/v1CloudStackMachineConfigEntity"
+        },
+        "size": {
+          "description": "size of the pool, number of machines",
+          "format": "int32",
+          "type": "integer"
+        }
+      }
     },
     "v1OverlordMaasAccountCreate": {
       "properties": {
@@ -21886,6 +24025,20 @@
       },
       "type": "object"
     },
+    "v1PolicyRef": {
+      "description": "Policy reference",
+      "properties": {
+        "kind": {
+          "description": "Kind of the policy",
+          "type": "string"
+        },
+        "uid": {
+          "description": "UID of the policy",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
     "v1Pool": {
       "description": "Pool defines IP ranges or with CIDR for available IPs Gateway, Prefix and Nameserver if provided, will overwrite values in IPPool",
       "properties": {
@@ -22294,6 +24447,28 @@
       },
       "type": "array"
     },
+    "v1ProjectResourceReference": {
+      "description": "Project-scoped resource reference",
+      "properties": {
+        "kind": {
+          "description": "Kind of the referenced resource",
+          "type": "string"
+        },
+        "name": {
+          "description": "Name of the referenced resource",
+          "type": "string"
+        },
+        "projectUid": {
+          "description": "UID of the Project that scopes this resource",
+          "type": "string"
+        },
+        "uid": {
+          "description": "UID of the referenced resource",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
     "v1ProjectResourceUsage": {
       "description": "project resource usage",
       "properties": {
@@ -22606,6 +24781,9 @@
     "v1RateConfig": {
       "description": "Rate config",
       "properties": {
+        "apache-cloudstack": {
+          "$ref": "#/definitions/v1PrivateCloudRateConfig"
+        },
         "aws": {
           "$ref": "#/definitions/v1PublicCloudRateConfig"
         },
@@ -23256,7 +25434,9 @@
         "edgetoken",
         "clustergroup",
         "filter",
-        "systemadmin"
+        "systemadmin",
+        "spcpolicy",
+        "clustertemplate"
       ],
       "type": "string"
     },
@@ -23843,6 +26023,31 @@
         "bucketName",
         "region",
         "credentials"
+      ],
+      "type": "object"
+    },
+    "v1Schedule": {
+      "description": "Information about a schedule for the policy",
+      "properties": {
+        "durationHrs": {
+          "description": "Specifies the time window in hours during which the system is allowed to start upgrades on eligible clusters. Actual upgrade completion may vary due to cluster-specific factors like bandwidth, capacity, or environment.",
+          "maximum": 24,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "name": {
+          "description": "Name of the upgrade schedule",
+          "type": "string"
+        },
+        "startCron": {
+          "description": "Cron expression for the start time of the schedule",
+          "type": "string"
+        }
+      },
+      "required": [
+        "durationHrs",
+        "startCron",
+        "name"
       ],
       "type": "object"
     },
@@ -24668,6 +26873,190 @@
       },
       "type": "object"
     },
+    "v1SpcPoliciesFilterSpec": {
+      "description": "Spc policies filter summary spec",
+      "properties": {
+        "filter": {
+          "$ref": "#/definitions/v1SpcPolicyFilterSpec"
+        },
+        "sort": {
+          "items": {
+            "$ref": "#/definitions/v1SpcPolicySortSpec"
+          },
+          "type": "array",
+          "uniqueItems": true
+        }
+      }
+    },
+    "v1SpcPoliciesMetadata": {
+      "properties": {
+        "items": {
+          "items": {
+            "$ref": "#/definitions/v1SpcPolicyMetadata"
+          },
+          "type": "array",
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "items"
+      ],
+      "type": "object"
+    },
+    "v1SpcPoliciesSummary": {
+      "properties": {
+        "items": {
+          "items": {
+            "$ref": "#/definitions/v1SpcPolicySummary"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "listmeta": {
+          "$ref": "#/definitions/v1ListMetaData"
+        }
+      },
+      "required": [
+        "items"
+      ],
+      "type": "object"
+    },
+    "v1SpcPolicyEntity": {
+      "description": "Policy entity information",
+      "properties": {
+        "metadata": {
+          "$ref": "#/definitions/v1ObjectMeta"
+        },
+        "spec": {
+          "$ref": "#/definitions/v1SpcPolicySpec"
+        }
+      },
+      "type": "object"
+    },
+    "v1SpcPolicyFilterSpec": {
+      "description": "Spc policy filter spec",
+      "properties": {
+        "policyName": {
+          "$ref": "#/definitions/v1FilterString"
+        },
+        "policyType": {
+          "items": {
+            "$ref": "#/definitions/v1SpcPolicyType"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "tags": {
+          "$ref": "#/definitions/v1FilterArray"
+        }
+      }
+    },
+    "v1SpcPolicyMetadata": {
+      "properties": {
+        "kind": {
+          "description": "The kind of the spc policy eg maintenance.",
+          "type": "string"
+        },
+        "name": {
+          "description": "The name of the spc policy",
+          "type": "string"
+        },
+        "projectUid": {
+          "description": "The project UID of the spc policy",
+          "type": "string"
+        },
+        "uid": {
+          "description": "The UID of the spc policy",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "v1SpcPolicySortFields": {
+      "enum": [
+        "policyName",
+        "policyType",
+        "creationTimestamp",
+        "lastModifiedTimestamp"
+      ],
+      "type": "string",
+      "x-nullable": true
+    },
+    "v1SpcPolicySortSpec": {
+      "properties": {
+        "field": {
+          "$ref": "#/definitions/v1SpcPolicySortFields"
+        },
+        "order": {
+          "$ref": "#/definitions/v1SortOrder"
+        }
+      }
+    },
+    "v1SpcPolicySpec": {
+      "description": "Policy specification",
+      "properties": {
+        "schedules": {
+          "items": {
+            "$ref": "#/definitions/v1Schedule"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "v1SpcPolicyStatusSummary": {
+      "description": "Provides status information for SpcPolicy like in use templates using the policy",
+      "properties": {
+        "inUseClusterTemplates": {
+          "items": {
+            "$ref": "#/definitions/v1ObjectStateEntity"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "v1SpcPolicySummary": {
+      "description": "Spc policy summary",
+      "properties": {
+        "metadata": {
+          "$ref": "#/definitions/v1ObjectMeta"
+        },
+        "spec": {
+          "properties": {
+            "kind": {
+              "description": "The kind of the spc policy eg maintenance.",
+              "type": "string"
+            }
+          },
+          "type": "object"
+        },
+        "status": {
+          "$ref": "#/definitions/v1SpcPolicyStatusSummary"
+        }
+      },
+      "type": "object"
+    },
+    "v1SpcPolicyTags": {
+      "description": "Spc policy tags response",
+      "properties": {
+        "tags": {
+          "description": "Array of spc policy tags",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "v1SpcPolicyType": {
+      "default": "maintenance",
+      "enum": [
+        "maintenance"
+      ],
+      "type": "string"
+    },
     "v1SpectroAppMgmtUpgrade": {
       "description": "Spectro application management upgrade information",
       "properties": {
@@ -24706,6 +27095,9 @@
               "$ref": "#/definitions/v1ClusterConfigEntity",
               "description": "General cluster configuration like health, patching settings, namespace resource allocation, rbac"
             },
+            "clusterTemplate": {
+              "$ref": "#/definitions/v1ClusterTemplateRef"
+            },
             "clusterType": {
               "$ref": "#/definitions/v1ClusterType"
             },
@@ -24719,6 +27111,7 @@
               "$ref": "#/definitions/v1SpectroClusterPolicies"
             },
             "profiles": {
+              "description": "Cluster profile references that specify which profiles to apply to the cluster. Supports overriding pack values and variables. When template references are used, pack values cannot be overridden as they are retrieved from the template's pre-configured definitions.",
               "items": {
                 "$ref": "#/definitions/v1SpectroClusterProfileEntity"
               },
@@ -24786,6 +27179,9 @@
               "$ref": "#/definitions/v1ClusterConfigEntity",
               "description": "General cluster configuration like health, patching settings, namespace resource allocation, rbac"
             },
+            "clusterTemplate": {
+              "$ref": "#/definitions/v1ClusterTemplateRef"
+            },
             "machinepoolconfig": {
               "items": {
                 "$ref": "#/definitions/v1AzureMachinePoolConfigEntity"
@@ -24796,6 +27192,7 @@
               "$ref": "#/definitions/v1SpectroClusterPolicies"
             },
             "profiles": {
+              "description": "Cluster profile references that specify which profiles to apply to the cluster. Supports overriding pack values and variables. When template references are used, pack values cannot be overridden as they are retrieved from the template's pre-configured definitions.",
               "items": {
                 "$ref": "#/definitions/v1SpectroClusterProfileEntity"
               },
@@ -24838,6 +27235,83 @@
         "machinepoolconfig": {
           "items": {
             "$ref": "#/definitions/v1AzureMachinePoolConfigEntity"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "v1SpectroCloudStackClusterEntity": {
+      "description": "CloudStack cluster request payload for create and update",
+      "properties": {
+        "metadata": {
+          "$ref": "#/definitions/v1ObjectMetaInputEntity"
+        },
+        "spec": {
+          "properties": {
+            "cloudAccountUid": {
+              "description": "Cloud account uid to be used for cluster provisioning",
+              "type": "string"
+            },
+            "cloudConfig": {
+              "$ref": "#/definitions/v1CloudStackClusterConfig"
+            },
+            "clusterConfig": {
+              "$ref": "#/definitions/v1ClusterConfigEntity",
+              "description": "General cluster configuration like health, patching settings, namespace resource allocation, rbac"
+            },
+            "machinepoolconfig": {
+              "items": {
+                "$ref": "#/definitions/v1CloudStackMachinePoolConfigEntity"
+              },
+              "type": "array"
+            },
+            "policies": {
+              "$ref": "#/definitions/v1SpectroClusterPolicies"
+            },
+            "profiles": {
+              "items": {
+                "$ref": "#/definitions/v1SpectroClusterProfileEntity"
+              },
+              "type": "array"
+            }
+          },
+          "required": [
+            "cloudType",
+            "cloudAccountUid",
+            "cloudConfig"
+          ],
+          "type": "object"
+        }
+      },
+      "type": "object"
+    },
+    "v1SpectroCloudStackClusterImportEntity": {
+      "description": "Spectro CloudStack cluster import request payload",
+      "properties": {
+        "metadata": {
+          "$ref": "#/definitions/v1ObjectMetaInputEntity"
+        },
+        "spec": {
+          "properties": {
+            "clusterConfig": {
+              "$ref": "#/definitions/v1ImportClusterConfig"
+            }
+          },
+          "type": "object"
+        }
+      },
+      "type": "object"
+    },
+    "v1SpectroCloudStackClusterRateEntity": {
+      "description": "CloudStack cluster request payload for estimating rate",
+      "properties": {
+        "cloudConfig": {
+          "$ref": "#/definitions/v1CloudStackClusterConfig"
+        },
+        "machinepoolconfig": {
+          "items": {
+            "$ref": "#/definitions/v1CloudStackMachinePoolConfigEntity"
           },
           "type": "array"
         }
@@ -25152,6 +27626,13 @@
         "clusterStates": {
           "items": {
             "$ref": "#/definitions/v1ClusterState"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "clusterTemplates": {
+          "items": {
+            "type": "string"
           },
           "type": "array",
           "uniqueItems": true
@@ -26279,6 +28760,9 @@
           },
           "type": "array"
         },
+        "clusterTemplate": {
+          "$ref": "#/definitions/v1SpectroClusterTemplateRef"
+        },
         "clusterType": {
           "enum": [
             "PureManage",
@@ -26483,6 +28967,20 @@
             "type": "string"
           },
           "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "v1SpectroClusterTemplateRef": {
+      "description": "Reference to the cluster template from which this cluster was created, containing template identification metadata",
+      "properties": {
+        "projectUid": {
+          "description": "Project uid of the cluster template",
+          "type": "string"
+        },
+        "uid": {
+          "description": "Uid of the cluster template from which the cluster is created",
+          "type": "string"
         }
       },
       "type": "object"
@@ -26735,6 +29233,11 @@
           "type": "boolean",
           "x-omitempty": false
         },
+        "inputType": {
+          "$ref": "#/definitions/v1VariableInputType",
+          "description": "Input type for the variable - text or dropdown. Defaults to text for backward compatibility",
+          "x-omitempty": false
+        },
         "isSensitive": {
           "description": "If true, then default value will be masked. By default the isSensitive flag will be set to false",
           "type": "boolean",
@@ -26743,6 +29246,14 @@
         "name": {
           "description": "Variable name",
           "type": "string"
+        },
+        "options": {
+          "description": "Available options for dropdown input type",
+          "items": {
+            "$ref": "#/definitions/v1VariableOption"
+          },
+          "type": "array",
+          "x-omitempty": false
         },
         "regex": {
           "description": "Regular expression pattern which the variable value must match",
@@ -26972,6 +29483,9 @@
               "$ref": "#/definitions/v1CustomClusterConfigEntity",
               "description": "General cluster configuration like patching settings, namespace resource allocation, rbac"
             },
+            "clusterTemplate": {
+              "$ref": "#/definitions/v1ClusterTemplateRef"
+            },
             "clusterType": {
               "$ref": "#/definitions/v1ClusterType"
             },
@@ -26982,6 +29496,7 @@
               "type": "array"
             },
             "profiles": {
+              "description": "Cluster profile references that specify which profiles to apply to the cluster. Supports overriding pack values and variables. When template references are used, pack values cannot be overridden as they are retrieved from the template's pre-configured definitions.",
               "items": {
                 "$ref": "#/definitions/v1SpectroClusterProfileEntity"
               },
@@ -27013,6 +29528,9 @@
               "$ref": "#/definitions/v1ClusterConfigEntity",
               "description": "General cluster configuration like health, patching settings, namespace resource allocation, rbac"
             },
+            "clusterTemplate": {
+              "$ref": "#/definitions/v1ClusterTemplateRef"
+            },
             "machinepoolconfig": {
               "items": {
                 "$ref": "#/definitions/v1EdgeNativeMachinePoolConfigEntity"
@@ -27023,6 +29541,7 @@
               "$ref": "#/definitions/v1SpectroClusterPolicies"
             },
             "profiles": {
+              "description": "Cluster profile references that specify which profiles to apply to the cluster. Supports overriding pack values and variables. When template references are used, pack values cannot be overridden as they are retrieved from the template's pre-configured definitions.",
               "items": {
                 "$ref": "#/definitions/v1SpectroClusterProfileEntity"
               },
@@ -27186,6 +29705,9 @@
               "$ref": "#/definitions/v1ClusterConfigEntity",
               "description": "General cluster configuration like health, patching settings, namespace resource allocation, rbac"
             },
+            "clusterTemplate": {
+              "$ref": "#/definitions/v1ClusterTemplateRef"
+            },
             "fargateProfiles": {
               "items": {
                 "$ref": "#/definitions/v1FargateProfile"
@@ -27202,6 +29724,7 @@
               "$ref": "#/definitions/v1SpectroClusterPolicies"
             },
             "profiles": {
+              "description": "Cluster profile references that specify which profiles to apply to the cluster. Supports overriding pack values and variables. When template references are used, pack values cannot be overridden as they are retrieved from the template's pre-configured definitions.",
               "items": {
                 "$ref": "#/definitions/v1SpectroClusterProfileEntity"
               },
@@ -27251,6 +29774,9 @@
               "$ref": "#/definitions/v1ClusterConfigEntity",
               "description": "General cluster configuration like health, patching settings, namespace resource allocation, rbac"
             },
+            "clusterTemplate": {
+              "$ref": "#/definitions/v1ClusterTemplateRef"
+            },
             "machinepoolconfig": {
               "items": {
                 "$ref": "#/definitions/v1GcpMachinePoolConfigEntity"
@@ -27261,6 +29787,7 @@
               "$ref": "#/definitions/v1SpectroClusterPolicies"
             },
             "profiles": {
+              "description": "Cluster profile references that specify which profiles to apply to the cluster. Supports overriding pack values and variables. When template references are used, pack values cannot be overridden as they are retrieved from the template's pre-configured definitions.",
               "items": {
                 "$ref": "#/definitions/v1SpectroClusterProfileEntity"
               },
@@ -27423,6 +29950,12 @@
               "$ref": "#/definitions/v1ClusterConfigEntity",
               "description": "General cluster configuration like health, patching settings, namespace resource allocation, rbac"
             },
+            "clusterTemplate": {
+              "$ref": "#/definitions/v1ClusterTemplateRef"
+            },
+            "clusterType": {
+              "$ref": "#/definitions/v1ClusterType"
+            },
             "machinepoolconfig": {
               "items": {
                 "$ref": "#/definitions/v1MaasMachinePoolConfigEntity"
@@ -27433,6 +29966,7 @@
               "$ref": "#/definitions/v1SpectroClusterPolicies"
             },
             "profiles": {
+              "description": "Cluster profile references that specify which profiles to apply to the cluster. Supports overriding pack values and variables. When template references are used, pack values cannot be overridden as they are retrieved from the template's pre-configured definitions.",
               "items": {
                 "$ref": "#/definitions/v1SpectroClusterProfileEntity"
               },
@@ -27665,6 +30199,9 @@
               "$ref": "#/definitions/v1ClusterConfigEntity",
               "description": "General cluster configuration like health, patching settings, namespace resource allocation, rbac"
             },
+            "clusterTemplate": {
+              "$ref": "#/definitions/v1ClusterTemplateRef"
+            },
             "machinepoolconfig": {
               "items": {
                 "$ref": "#/definitions/v1OpenStackMachinePoolConfigEntity"
@@ -27675,6 +30212,7 @@
               "$ref": "#/definitions/v1SpectroClusterPolicies"
             },
             "profiles": {
+              "description": "Cluster profile references that specify which profiles to apply to the cluster. Supports overriding pack values and variables. When template references are used, pack values cannot be overridden as they are retrieved from the template's pre-configured definitions.",
               "items": {
                 "$ref": "#/definitions/v1SpectroClusterProfileEntity"
               },
@@ -27806,6 +30344,9 @@
               "$ref": "#/definitions/v1ClusterConfigEntity",
               "description": "General cluster configuration like health, patching settings, namespace resource allocation, rbac"
             },
+            "clusterTemplate": {
+              "$ref": "#/definitions/v1ClusterTemplateRef"
+            },
             "machinepoolconfig": {
               "items": {
                 "$ref": "#/definitions/v1VirtualMachinePoolConfigEntity"
@@ -27816,6 +30357,7 @@
               "$ref": "#/definitions/v1SpectroClusterPolicies"
             },
             "profiles": {
+              "description": "Cluster profile references that specify which profiles to apply to the cluster. Supports overriding pack values and variables. When template references are used, pack values cannot be overridden as they are retrieved from the template's pre-configured definitions.",
               "items": {
                 "$ref": "#/definitions/v1SpectroClusterProfileEntity"
               },
@@ -27850,6 +30392,9 @@
               "$ref": "#/definitions/v1ClusterConfigEntity",
               "description": "General cluster configuration like health, patching settings, namespace resource allocation, rbac"
             },
+            "clusterTemplate": {
+              "$ref": "#/definitions/v1ClusterTemplateRef"
+            },
             "edgeHostUid": {
               "description": "Appliance (Edge Host) uid for Edge env",
               "type": "string"
@@ -27864,6 +30409,7 @@
               "$ref": "#/definitions/v1SpectroClusterPolicies"
             },
             "profiles": {
+              "description": "Cluster profile references that specify which profiles to apply to the cluster. Supports overriding pack values and variables. When template references are used, pack values cannot be overridden as they are retrieved from the template's pre-configured definitions.",
               "items": {
                 "$ref": "#/definitions/v1SpectroClusterProfileEntity"
               },
@@ -28939,6 +31485,23 @@
       },
       "type": "object"
     },
+    "v1SystemCloudstackImage": {
+      "description": "SystemAdmin",
+      "properties": {
+        "spec": {
+          "$ref": "#/definitions/v1SystemCloudstackImageSpec"
+        }
+      },
+      "type": "object"
+    },
+    "v1SystemCloudstackImageSpec": {
+      "description": "system cloudstack account specifications",
+      "properties": {
+        "imagesHostEndpoint": {
+          "type": "string"
+        }
+      }
+    },
     "v1SystemConfigAuth": {
       "description": "System config auth",
       "properties": {
@@ -29402,6 +31965,9 @@
         },
         "isRegex": {
           "type": "boolean"
+        },
+        "maxLength": {
+          "type": "integer"
         },
         "minLength": {
           "type": "integer"
@@ -30743,6 +33309,9 @@
         "isRegex": {
           "type": "boolean"
         },
+        "maxLength": {
+          "type": "integer"
+        },
         "minLength": {
           "type": "integer"
         },
@@ -31284,6 +33853,19 @@
       "description": "Time is a wrapper around time.Time which supports correct marshaling to YAML and JSON.  Wrappers are provided for many of the factory methods that the time package offers.",
       "format": "date-time",
       "type": "string"
+    },
+    "v1TimezoneUpdateEntity": {
+      "properties": {
+        "timezone": {
+          "description": "The timezone field is mandatory if cluster is deployed through template, else it is optional",
+          "example": "America/New_York",
+          "type": "string"
+        }
+      },
+      "required": [
+        "timezone"
+      ],
+      "type": "object"
     },
     "v1TlsConfiguration": {
       "description": "TLS configuration",
@@ -32601,6 +35183,10 @@
           "type": "boolean",
           "x-omitempty": false
         },
+        "inputType": {
+          "$ref": "#/definitions/v1VariableInputType",
+          "description": "Input type for the variable - text or dropdown. Defaults to text for backward compatibility"
+        },
         "isSensitive": {
           "description": "If true, then default value will be masked. By default the isSensitive flag will be set to false",
           "type": "boolean",
@@ -32609,6 +35195,13 @@
         "name": {
           "description": "Variable name",
           "type": "string"
+        },
+        "options": {
+          "description": "Available options for dropdown input type",
+          "items": {
+            "$ref": "#/definitions/v1VariableOption"
+          },
+          "type": "array"
         },
         "regex": {
           "description": "Regular expression pattern which the variable value must match",
@@ -32635,7 +35228,18 @@
         "ipv4",
         "ipv4cidr",
         "ipv6",
-        "version"
+        "version",
+        "base64"
+      ],
+      "type": "string"
+    },
+    "v1VariableInputType": {
+      "default": "text",
+      "description": "Input type for the variable",
+      "enum": [
+        "text",
+        "dropdown",
+        "multiline"
       ],
       "type": "string"
     },
@@ -32653,6 +35257,32 @@
       "required": [
         "variables"
       ]
+    },
+    "v1VariableOption": {
+      "description": "Option for dropdown variable input type",
+      "properties": {
+        "default": {
+          "description": "Mark this option as the default selection",
+          "type": "boolean",
+          "x-omitempty": false
+        },
+        "description": {
+          "description": "Optional tooltip/description for the option",
+          "type": "string"
+        },
+        "label": {
+          "description": "Display text for the option",
+          "type": "string"
+        },
+        "value": {
+          "description": "Actual value for the option",
+          "type": "string"
+        }
+      },
+      "required": [
+        "value"
+      ],
+      "type": "object"
     },
     "v1Variables": {
       "properties": {
@@ -33953,6 +36583,10 @@
           },
           "type": "array"
         },
+        "downwardMetrics": {
+          "description": "DownwardMetrics creates a virtio serials for exposing the downward metrics to the vmi.",
+          "type": "object"
+        },
         "filesystems": {
           "description": "Filesystems describes filesystem which is connected to the vmi.",
           "items": {
@@ -33990,6 +36624,10 @@
             "$ref": "#/definitions/v1VmInterface"
           },
           "type": "array"
+        },
+        "logSerialConsole": {
+          "description": "Whether to log the auto-attached default serial console or not. Serial console logs will be collect to a file and then streamed from a named 'guest-console-log'. Not relevant if autoattachSerialConsole is disabled. Defaults to cluster wide setting on VirtualMachineOptions.",
+          "type": "boolean"
         },
         "networkInterfaceMultiqueue": {
           "description": "If specified, virtual network interfaces configured with a virtio bus will also enable the vhost multiqueue feature for network devices. The number of queues created depends on additional factors of the VirtualMachineInstance, like the number of guest CPUs.",
@@ -34103,6 +36741,17 @@
         },
         "firmware": {
           "$ref": "#/definitions/v1VmFirmware"
+        },
+        "ioThreads": {
+          "description": "IOThreads specifies the IOThreads options.",
+          "properties": {
+            "supplementalPoolThreadCount": {
+              "description": "SupplementalPoolThreadCount specifies how many iothreads are allocated for the supplementalPool policy.",
+              "format": "int32",
+              "type": "integer"
+            }
+          },
+          "type": "object"
         },
         "ioThreadsPolicy": {
           "description": "Controls whether or not disks will share IOThreads. Omitting IOThreadsPolicy disables use of IOThreads. One of: shared, auto",
@@ -35977,6 +38626,10 @@
         },
         "affinity": {
           "$ref": "#/definitions/v1VmAffinity"
+        },
+        "architecture": {
+          "description": "Specifies the architecture of the vm guest you are attempting to run. Defaults to the compiled architecture of the KubeVirt components",
+          "type": "string"
         },
         "dnsConfig": {
           "$ref": "#/definitions/v1VmPodDnsConfig"
@@ -38092,7 +40745,7 @@
     }
   },
   "info": {
-    "title": "Palette APIs - 4.7",
+    "title": "Palette APIs - 4.8",
     "version": "v1"
   },
   "paths": {
@@ -39194,7 +41847,9 @@
               "update",
               "delete",
               "publish",
-              "deploy"
+              "deploy",
+              "activity",
+              "action"
             ],
             "in": "query",
             "name": "actionType",
@@ -39886,6 +42541,484 @@
           "v1"
         ]
       }
+    },
+    "/v1/cloudaccounts/apache-cloudstack": {
+      "get": {
+        "operationId": "v1CloudAccountsCloudStackList",
+        "parameters": [
+          {
+            "description": "Set of fields to be presented in the response with values. The fields are comma separated. Eg: metadata.uid,metadata.name",
+            "in": "query",
+            "name": "fields",
+            "type": "string"
+          },
+          {
+            "description": "Filters can be combined with AND, OR operators with field path name. Eg: metadata.name=TestServiceANDspec.cloudType=aws\n\nServer will be restricted to certain fields based on the indexed data for each resource.",
+            "in": "query",
+            "name": "filters",
+            "type": "string"
+          },
+          {
+            "description": "Specify the fields with sort order. 1 indicates ascending and -1 for descending. Eg: orderBy=metadata.name=1,metadata.uid=-1",
+            "in": "query",
+            "name": "orderBy",
+            "type": "string"
+          },
+          {
+            "default": 50,
+            "description": "limit is a maximum number of responses to return for a list call. Default and maximum value of the limit is 50.\nIf more items exist, the server will set the `continue` field on the list metadata to a value that can be used with the same initial query to retrieve the next set of results.",
+            "format": "int64",
+            "in": "query",
+            "name": "limit",
+            "type": "integer"
+          },
+          {
+            "description": "offset is the next index number from which the response will start. The response offset value can be used along with continue token for the pagination.",
+            "format": "int64",
+            "in": "query",
+            "name": "offset",
+            "type": "integer"
+          },
+          {
+            "description": "continue token to paginate the subsequent data items",
+            "in": "query",
+            "name": "continue",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "An array of CloudStack cloud account items",
+            "schema": {
+              "$ref": "#/definitions/v1CloudStackAccounts"
+            }
+          }
+        },
+        "summary": "Retrieves a list of CloudStack cloud accounts",
+        "tags": [
+          "v1"
+        ],
+        "x-Features": [
+          "ApacheCloudstack"
+        ]
+      },
+      "post": {
+        "operationId": "v1CloudAccountsCloudStackCreate",
+        "parameters": [
+          {
+            "description": "Request payload to validate CloudStack cloud account",
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/v1CloudStackAccountInputEntity"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created successfully",
+            "headers": {
+              "AuditUid": {
+                "description": "Audit uid for the request",
+                "type": "string"
+              }
+            },
+            "schema": {
+              "$ref": "#/definitions/v1Uid"
+            }
+          }
+        },
+        "summary": "Creates a CloudStack cloud account",
+        "tags": [
+          "v1"
+        ],
+        "x-Features": [
+          "ApacheCloudstack"
+        ]
+      }
+    },
+    "/v1/cloudaccounts/apache-cloudstack/{uid}": {
+      "delete": {
+        "operationId": "v1CloudAccountsCloudStackDelete",
+        "responses": {
+          "204": {
+            "description": "The resource was deleted successfully"
+          }
+        },
+        "summary": "Deletes the specified CloudStack account",
+        "tags": [
+          "v1"
+        ]
+      },
+      "get": {
+        "operationId": "v1CloudAccountsCloudStackGet",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/v1CloudStackAccount"
+            }
+          }
+        },
+        "summary": "Returns the specified CloudStack account",
+        "tags": [
+          "v1"
+        ]
+      },
+      "parameters": [
+        {
+          "description": "CloudStack cloud account uid",
+          "in": "path",
+          "name": "uid",
+          "required": true,
+          "type": "string"
+        }
+      ],
+      "put": {
+        "operationId": "v1CloudAccountsCloudStackUpdate",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/v1CloudStackAccountUpdateEntity"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "The resource was updated successfully"
+          }
+        },
+        "summary": "Updates the specified CloudStack account",
+        "tags": [
+          "v1"
+        ]
+      }
+    },
+    "/v1/cloudaccounts/apache-cloudstack/{uid}/properties/diskofferings": {
+      "get": {
+        "operationId": "v1CloudstackAccountsUidDiskofferings",
+        "parameters": [
+          {
+            "description": "Zone for which CloudStack disk offerings are requested",
+            "in": "query",
+            "name": "zone",
+            "type": "string"
+          },
+          {
+            "description": "Project ID for which CloudStack disk offerings are requested",
+            "in": "query",
+            "name": "projectId",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "(empty)",
+            "schema": {
+              "$ref": "#/definitions/v1CloudStackDiskOfferings"
+            }
+          }
+        },
+        "summary": "Get the cloudstack disk offerings for a given account and zone",
+        "tags": [
+          "v1"
+        ]
+      },
+      "parameters": [
+        {
+          "in": "path",
+          "name": "uid",
+          "required": true,
+          "type": "string"
+        }
+      ]
+    },
+    "/v1/cloudaccounts/apache-cloudstack/{uid}/properties/domains": {
+      "get": {
+        "operationId": "v1CloudstackAccountsUidDomains",
+        "responses": {
+          "200": {
+            "description": "(empty)",
+            "schema": {
+              "$ref": "#/definitions/v1CloudStackDomains"
+            }
+          }
+        },
+        "summary": "Get the cloudstack domains for a given account",
+        "tags": [
+          "v1"
+        ]
+      },
+      "parameters": [
+        {
+          "in": "path",
+          "name": "uid",
+          "required": true,
+          "type": "string"
+        }
+      ]
+    },
+    "/v1/cloudaccounts/apache-cloudstack/{uid}/properties/keypairs": {
+      "get": {
+        "operationId": "v1CloudstackAccountsUidKeypairs",
+        "parameters": [
+          {
+            "description": "Project ID for which CloudStack SSH key pairs are requested",
+            "in": "query",
+            "name": "projectId",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "(empty)",
+            "schema": {
+              "$ref": "#/definitions/v1CloudStackKeypairs"
+            }
+          }
+        },
+        "summary": "Get the cloudstack SSH key pairs for a given account",
+        "tags": [
+          "v1"
+        ]
+      },
+      "parameters": [
+        {
+          "in": "path",
+          "name": "uid",
+          "required": true,
+          "type": "string"
+        }
+      ]
+    },
+    "/v1/cloudaccounts/apache-cloudstack/{uid}/properties/networks": {
+      "get": {
+        "operationId": "v1CloudstackAccountsUidNetworks",
+        "parameters": [
+          {
+            "description": "Zone for which CloudStack networks are requested",
+            "in": "query",
+            "name": "zone",
+            "type": "string"
+          },
+          {
+            "description": "Project ID for which CloudStack networks are requested",
+            "in": "query",
+            "name": "projectId",
+            "type": "string"
+          },
+          {
+            "description": "VPC ID for which CloudStack networks are requested",
+            "in": "query",
+            "name": "vpcId",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "(empty)",
+            "schema": {
+              "$ref": "#/definitions/v1CloudStackNetworks"
+            }
+          }
+        },
+        "summary": "Get the cloudstack networks for a given account and zone",
+        "tags": [
+          "v1"
+        ]
+      },
+      "parameters": [
+        {
+          "in": "path",
+          "name": "uid",
+          "required": true,
+          "type": "string"
+        }
+      ]
+    },
+    "/v1/cloudaccounts/apache-cloudstack/{uid}/properties/offerings": {
+      "get": {
+        "operationId": "v1CloudstackAccountsUidOfferings",
+        "parameters": [
+          {
+            "description": "Zone for which CloudStack offerings are requested",
+            "in": "query",
+            "name": "zone",
+            "type": "string"
+          },
+          {
+            "description": "Project ID for which CloudStack offerings are requested",
+            "in": "query",
+            "name": "projectId",
+            "type": "string"
+          },
+          {
+            "description": "Template ID for which CloudStack offerings are requested",
+            "in": "query",
+            "name": "templateId",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "(empty)",
+            "schema": {
+              "$ref": "#/definitions/v1CloudStackOfferings"
+            }
+          }
+        },
+        "summary": "Get the cloudstack compute offerings for a given account and zone",
+        "tags": [
+          "v1"
+        ]
+      },
+      "parameters": [
+        {
+          "in": "path",
+          "name": "uid",
+          "required": true,
+          "type": "string"
+        }
+      ]
+    },
+    "/v1/cloudaccounts/apache-cloudstack/{uid}/properties/projects": {
+      "get": {
+        "operationId": "v1CloudstackAccountsUidProjects",
+        "responses": {
+          "200": {
+            "description": "(empty)",
+            "schema": {
+              "$ref": "#/definitions/v1CloudStackProjects"
+            }
+          }
+        },
+        "summary": "Get the cloudstack projects for a given account and domain",
+        "tags": [
+          "v1"
+        ]
+      },
+      "parameters": [
+        {
+          "in": "path",
+          "name": "uid",
+          "required": true,
+          "type": "string"
+        }
+      ]
+    },
+    "/v1/cloudaccounts/apache-cloudstack/{uid}/properties/templates": {
+      "get": {
+        "operationId": "v1CloudstackAccountsUidTemplates",
+        "parameters": [
+          {
+            "description": "Zone for which CloudStack templates are requested",
+            "in": "query",
+            "name": "zone",
+            "type": "string"
+          },
+          {
+            "description": "Project ID for which CloudStack templates are requested",
+            "in": "query",
+            "name": "projectId",
+            "type": "string"
+          },
+          {
+            "description": "Template IDs for which CloudStack templates are requested",
+            "in": "query",
+            "items": {
+              "type": "string"
+            },
+            "name": "templateIds",
+            "type": "array"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "(empty)",
+            "schema": {
+              "$ref": "#/definitions/v1CloudStackTemplates"
+            }
+          }
+        },
+        "summary": "Get the cloudstack templates for a given account and zone",
+        "tags": [
+          "v1"
+        ]
+      },
+      "parameters": [
+        {
+          "in": "path",
+          "name": "uid",
+          "required": true,
+          "type": "string"
+        }
+      ]
+    },
+    "/v1/cloudaccounts/apache-cloudstack/{uid}/properties/vpcs": {
+      "get": {
+        "operationId": "v1CloudstackAccountsUidVpcs",
+        "parameters": [
+          {
+            "description": "Project ID for which CloudStack VPCs are requested",
+            "in": "query",
+            "name": "projectId",
+            "type": "string"
+          },
+          {
+            "description": "Domain ID for which CloudStack VPCs are requested",
+            "in": "query",
+            "name": "domainId",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "(empty)",
+            "schema": {
+              "$ref": "#/definitions/v1CloudStackVpcs"
+            }
+          }
+        },
+        "summary": "Get the cloudstack VPCs for a given account",
+        "tags": [
+          "v1"
+        ]
+      },
+      "parameters": [
+        {
+          "in": "path",
+          "name": "uid",
+          "required": true,
+          "type": "string"
+        }
+      ]
+    },
+    "/v1/cloudaccounts/apache-cloudstack/{uid}/properties/zones": {
+      "get": {
+        "operationId": "v1CloudstackAccountsUidZones",
+        "responses": {
+          "200": {
+            "description": "(empty)",
+            "schema": {
+              "$ref": "#/definitions/v1CloudStackZones"
+            }
+          }
+        },
+        "summary": "Get the cloudstack zones for a given account",
+        "tags": [
+          "v1"
+        ]
+      },
+      "parameters": [
+        {
+          "in": "path",
+          "name": "uid",
+          "required": true,
+          "type": "string"
+        }
+      ]
     },
     "/v1/cloudaccounts/aws": {
       "get": {
@@ -41787,6 +44920,292 @@
           }
         },
         "summary": "Updates the specified machine to the cloud config's machine pool",
+        "tags": [
+          "v1"
+        ]
+      }
+    },
+    "/v1/cloudconfigs/apache-cloudstack/{configUid}": {
+      "get": {
+        "operationId": "v1CloudConfigsCloudStackGet",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/v1CloudStackCloudConfig"
+            }
+          }
+        },
+        "summary": "Returns the specified CloudStack cloud config",
+        "tags": [
+          "v1"
+        ]
+      },
+      "parameters": [
+        {
+          "description": "Cluster's cloud config uid",
+          "in": "path",
+          "name": "configUid",
+          "required": true,
+          "type": "string"
+        }
+      ]
+    },
+    "/v1/cloudconfigs/apache-cloudstack/{configUid}/clusterConfig": {
+      "parameters": [
+        {
+          "description": "Cluster's cloud config uid",
+          "in": "path",
+          "name": "configUid",
+          "required": true,
+          "type": "string"
+        }
+      ],
+      "put": {
+        "operationId": "v1CloudConfigsCloudStackUidClusterConfig",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/v1CloudStackCloudClusterConfigEntity"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "The resource was updated successfully"
+          }
+        },
+        "summary": "Updates the cluster configuration information",
+        "tags": [
+          "v1"
+        ]
+      }
+    },
+    "/v1/cloudconfigs/apache-cloudstack/{configUid}/machinePools": {
+      "parameters": [
+        {
+          "description": "Cluster's cloud config uid",
+          "in": "path",
+          "name": "configUid",
+          "required": true,
+          "type": "string"
+        }
+      ],
+      "post": {
+        "operationId": "v1CloudConfigsCloudStackMachinePoolCreate",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/v1CloudStackMachinePoolConfigEntity"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created successfully",
+            "headers": {
+              "AuditUid": {
+                "description": "Audit uid for the request",
+                "type": "string"
+              }
+            },
+            "schema": {
+              "$ref": "#/definitions/v1Uid"
+            }
+          }
+        },
+        "summary": "Creates a CloudStack cloud config's machine pool",
+        "tags": [
+          "v1"
+        ]
+      }
+    },
+    "/v1/cloudconfigs/apache-cloudstack/{configUid}/machinePools/{machinePoolName}": {
+      "delete": {
+        "operationId": "v1CloudConfigsCloudStackMachinePoolDelete",
+        "responses": {
+          "204": {
+            "description": "The resource was deleted successfully"
+          }
+        },
+        "summary": "Deletes the specified machine pool",
+        "tags": [
+          "v1"
+        ]
+      },
+      "parameters": [
+        {
+          "description": "Cluster's cloud config uid",
+          "in": "path",
+          "name": "configUid",
+          "required": true,
+          "type": "string"
+        },
+        {
+          "description": "Machine pool name",
+          "in": "path",
+          "name": "machinePoolName",
+          "required": true,
+          "type": "string"
+        }
+      ],
+      "put": {
+        "operationId": "v1CloudConfigsCloudStackMachinePoolUpdate",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/v1CloudStackMachinePoolConfigEntity"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "The resource was updated successfully"
+          }
+        },
+        "summary": "Updates the specified CloudStack cloud config's machine pool",
+        "tags": [
+          "v1"
+        ]
+      }
+    },
+    "/v1/cloudconfigs/apache-cloudstack/{configUid}/machinePools/{machinePoolName}/machines": {
+      "get": {
+        "operationId": "v1CloudConfigsCloudStackPoolMachinesList",
+        "responses": {
+          "200": {
+            "description": "An array of CloudStack machine items",
+            "schema": {
+              "$ref": "#/definitions/v1CloudStackMachines"
+            }
+          }
+        },
+        "summary": "Retrieves a list of CloudStack machines",
+        "tags": [
+          "v1"
+        ]
+      },
+      "parameters": [
+        {
+          "description": "Cluster's cloud config uid",
+          "in": "path",
+          "name": "configUid",
+          "required": true,
+          "type": "string"
+        },
+        {
+          "description": "Machine pool name",
+          "in": "path",
+          "name": "machinePoolName",
+          "required": true,
+          "type": "string"
+        }
+      ],
+      "post": {
+        "operationId": "v1CloudConfigsCloudStackPoolMachinesAdd",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/v1CloudStackMachine"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created successfully",
+            "headers": {
+              "AuditUid": {
+                "description": "Audit uid for the request",
+                "type": "string"
+              }
+            },
+            "schema": {
+              "$ref": "#/definitions/v1Uid"
+            }
+          }
+        },
+        "summary": "Adds the CloudStack machine to cloud config's machine pool",
+        "tags": [
+          "v1"
+        ]
+      }
+    },
+    "/v1/cloudconfigs/apache-cloudstack/{configUid}/machinePools/{machinePoolName}/machines/{machineUid}": {
+      "delete": {
+        "operationId": "v1CloudConfigsCloudStackPoolMachinesUidDelete",
+        "responses": {
+          "204": {
+            "description": "The resource was deleted successfully"
+          }
+        },
+        "summary": "Deletes the specified CloudStack machine",
+        "tags": [
+          "v1"
+        ]
+      },
+      "get": {
+        "operationId": "v1CloudConfigsCloudStackPoolMachinesUidGet",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/v1CloudStackMachine"
+            }
+          }
+        },
+        "summary": "Returns the specified CloudStack machine",
+        "tags": [
+          "v1"
+        ]
+      },
+      "parameters": [
+        {
+          "description": "Cluster's cloud config uid",
+          "in": "path",
+          "name": "configUid",
+          "required": true,
+          "type": "string"
+        },
+        {
+          "description": "Machine pool name",
+          "in": "path",
+          "name": "machinePoolName",
+          "required": true,
+          "type": "string"
+        },
+        {
+          "description": "Machine uid",
+          "in": "path",
+          "name": "machineUid",
+          "required": true,
+          "type": "string"
+        }
+      ],
+      "put": {
+        "operationId": "v1CloudConfigsCloudStackPoolMachinesUidUpdate",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/v1CloudStackMachine"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "The resource was updated successfully"
+          }
+        },
+        "summary": "Updates the specified machine to cloud config's machine pool",
         "tags": [
           "v1"
         ]
@@ -46013,6 +49432,344 @@
         }
       ]
     },
+    "/v1/clouds/apache-cloudstack/account/validate": {
+      "post": {
+        "description": "Validates CloudStack account credentials and domain. Verifies API connectivity and that the specified domain exists. Returns no contents if account is valid else error.",
+        "operationId": "V1CloudStackAccountValidate",
+        "parameters": [
+          {
+            "description": "Request payload for CloudStack cloud account with required domain field",
+            "in": "body",
+            "name": "cloudstackCloudAccount",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1CloudStackCloudAccount"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Ok response without content",
+            "headers": {
+              "AuditUid": {
+                "description": "Audit uid for the request",
+                "type": "string"
+              }
+            }
+          }
+        },
+        "summary": "Check if CloudStack account is valid",
+        "tags": [
+          "v1"
+        ]
+      }
+    },
+    "/v1/clouds/apache-cloudstack/diskOfferings": {
+      "get": {
+        "operationId": "V1CloudStackDiskOfferingsGet",
+        "parameters": [
+          {
+            "description": "Uid for the specific CloudStack cloud account",
+            "in": "query",
+            "name": "cloudAccountUid",
+            "type": "string"
+          },
+          {
+            "description": "Zone for which CloudStack disk offerings are requested",
+            "in": "query",
+            "name": "zone",
+            "type": "string"
+          },
+          {
+            "description": "Project ID for which CloudStack disk offerings are requested",
+            "in": "query",
+            "name": "projectId",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "(empty)",
+            "schema": {
+              "$ref": "#/definitions/v1CloudStackDiskOfferings"
+            }
+          }
+        },
+        "summary": "Returns the CloudStack disk offerings",
+        "tags": [
+          "v1"
+        ]
+      }
+    },
+    "/v1/clouds/apache-cloudstack/domains": {
+      "get": {
+        "operationId": "V1CloudStackDomainsGet",
+        "parameters": [
+          {
+            "description": "Uid for the specific CloudStack cloud account",
+            "in": "query",
+            "name": "cloudAccountUid",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "(empty)",
+            "schema": {
+              "$ref": "#/definitions/v1CloudStackDomains"
+            }
+          }
+        },
+        "summary": "Returns the CloudStack domains",
+        "tags": [
+          "v1"
+        ]
+      }
+    },
+    "/v1/clouds/apache-cloudstack/keypairs": {
+      "get": {
+        "operationId": "V1CloudStackKeypairsGet",
+        "parameters": [
+          {
+            "description": "Uid for the specific CloudStack cloud account",
+            "in": "query",
+            "name": "cloudAccountUid",
+            "type": "string"
+          },
+          {
+            "description": "Project ID for which CloudStack SSH key pairs are requested",
+            "in": "query",
+            "name": "projectId",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "(empty)",
+            "schema": {
+              "$ref": "#/definitions/v1CloudStackKeypairs"
+            }
+          }
+        },
+        "summary": "Returns the CloudStack SSH key pairs",
+        "tags": [
+          "v1"
+        ]
+      }
+    },
+    "/v1/clouds/apache-cloudstack/networks": {
+      "get": {
+        "operationId": "V1CloudStackNetworksGet",
+        "parameters": [
+          {
+            "description": "Uid for the specific CloudStack cloud account",
+            "in": "query",
+            "name": "cloudAccountUid",
+            "type": "string"
+          },
+          {
+            "description": "Zone for which CloudStack networks are requested",
+            "in": "query",
+            "name": "zone",
+            "type": "string"
+          },
+          {
+            "description": "Project ID for which CloudStack networks are requested",
+            "in": "query",
+            "name": "projectId",
+            "type": "string"
+          },
+          {
+            "description": "VPC ID for which CloudStack networks are requested",
+            "in": "query",
+            "name": "vpcId",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "(empty)",
+            "schema": {
+              "$ref": "#/definitions/v1CloudStackNetworks"
+            }
+          }
+        },
+        "summary": "Returns the CloudStack networks",
+        "tags": [
+          "v1"
+        ]
+      }
+    },
+    "/v1/clouds/apache-cloudstack/offerings": {
+      "get": {
+        "operationId": "V1CloudStackOfferingsGet",
+        "parameters": [
+          {
+            "description": "Uid for the specific CloudStack cloud account",
+            "in": "query",
+            "name": "cloudAccountUid",
+            "type": "string"
+          },
+          {
+            "description": "Zone for which CloudStack offerings are requested",
+            "in": "query",
+            "name": "zone",
+            "type": "string"
+          },
+          {
+            "description": "Project ID for which CloudStack offerings are requested",
+            "in": "query",
+            "name": "projectId",
+            "type": "string"
+          },
+          {
+            "description": "Template ID for which CloudStack offerings are requested",
+            "in": "query",
+            "name": "templateId",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "(empty)",
+            "schema": {
+              "$ref": "#/definitions/v1CloudStackOfferings"
+            }
+          }
+        },
+        "summary": "Returns the CloudStack compute offerings",
+        "tags": [
+          "v1"
+        ]
+      }
+    },
+    "/v1/clouds/apache-cloudstack/projects": {
+      "get": {
+        "operationId": "V1CloudStackProjectsGet",
+        "parameters": [
+          {
+            "description": "Uid for the specific CloudStack cloud account",
+            "in": "query",
+            "name": "cloudAccountUid",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "(empty)",
+            "schema": {
+              "$ref": "#/definitions/v1CloudStackProjects"
+            }
+          }
+        },
+        "summary": "Returns the CloudStack projects",
+        "tags": [
+          "v1"
+        ]
+      }
+    },
+    "/v1/clouds/apache-cloudstack/templates": {
+      "get": {
+        "operationId": "V1CloudStackTemplatesGet",
+        "parameters": [
+          {
+            "description": "Uid for the specific CloudStack cloud account",
+            "in": "query",
+            "name": "cloudAccountUid",
+            "type": "string"
+          },
+          {
+            "description": "Zone for which CloudStack templates are requested",
+            "in": "query",
+            "name": "zone",
+            "type": "string"
+          },
+          {
+            "description": "Project ID for which CloudStack templates are requested",
+            "in": "query",
+            "name": "projectId",
+            "type": "string"
+          },
+          {
+            "description": "Template IDs for which CloudStack templates are requested",
+            "in": "query",
+            "items": {
+              "type": "string"
+            },
+            "name": "templateIds",
+            "type": "array"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "(empty)",
+            "schema": {
+              "$ref": "#/definitions/v1CloudStackTemplates"
+            }
+          }
+        },
+        "summary": "Returns the CloudStack templates",
+        "tags": [
+          "v1"
+        ]
+      }
+    },
+    "/v1/clouds/apache-cloudstack/vpcs": {
+      "get": {
+        "operationId": "V1CloudStackVpcsGet",
+        "parameters": [
+          {
+            "description": "Uid for the specific CloudStack cloud account",
+            "in": "query",
+            "name": "cloudAccountUid",
+            "type": "string"
+          },
+          {
+            "description": "Project ID for which CloudStack VPCs are requested",
+            "in": "query",
+            "name": "projectId",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "(empty)",
+            "schema": {
+              "$ref": "#/definitions/v1CloudStackVpcs"
+            }
+          }
+        },
+        "summary": "Returns the CloudStack Vpcs",
+        "tags": [
+          "v1"
+        ]
+      }
+    },
+    "/v1/clouds/apache-cloudstack/zones": {
+      "get": {
+        "operationId": "V1CloudStackZonesGet",
+        "parameters": [
+          {
+            "description": "Uid for the specific CloudStack cloud account",
+            "in": "query",
+            "name": "cloudAccountUid",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "(empty)",
+            "schema": {
+              "$ref": "#/definitions/v1CloudStackZones"
+            }
+          }
+        },
+        "summary": "Returns the CloudStack zones",
+        "tags": [
+          "v1"
+        ]
+      }
+    },
     "/v1/clouds/aws/account/secret/credentials": {
       "post": {
         "operationId": "V1AwsAccountSecretCredentials",
@@ -46991,6 +50748,18 @@
             "in": "path",
             "name": "region",
             "required": true,
+            "type": "string"
+          },
+          {
+            "description": "Uid for the specific Azure cloud account",
+            "in": "query",
+            "name": "cloudAccountUid",
+            "type": "string"
+          },
+          {
+            "description": "Azure subscription ID (optional - falls back to cloud account subscription if not provided)",
+            "in": "query",
+            "name": "subscriptionId",
             "type": "string"
           },
           {
@@ -49275,6 +53044,347 @@
         ]
       }
     },
+    "/v1/clusterTemplates": {
+      "post": {
+        "operationId": "V1ClusterTemplatesCreate",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/v1ClusterTemplateEntity"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created successfully",
+            "headers": {
+              "AuditUid": {
+                "description": "Audit uid for the request",
+                "type": "string"
+              }
+            },
+            "schema": {
+              "$ref": "#/definitions/v1Uid"
+            }
+          }
+        },
+        "summary": "Create a new cluster template",
+        "tags": [
+          "v1"
+        ]
+      }
+    },
+    "/v1/clusterTemplates/spectroclusters/{clusterUid}/variables": {
+      "parameters": [
+        {
+          "description": "Cluster uid",
+          "in": "path",
+          "name": "clusterUid",
+          "required": true,
+          "type": "string"
+        }
+      ],
+      "patch": {
+        "operationId": "V1ClusterTemplatesUidSpectroClustersUidVariablesPatch",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/v1ClusterTemplateVariablesUpdateEntity"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "The resource was updated successfully"
+          }
+        },
+        "summary": "Update the specified cluster's template variables",
+        "tags": [
+          "v1"
+        ]
+      }
+    },
+    "/v1/clusterTemplates/tags": {
+      "get": {
+        "operationId": "V1ClusterTemplatesTagsGet",
+        "responses": {
+          "200": {
+            "description": "An array of cluster template tags",
+            "schema": {
+              "$ref": "#/definitions/v1ClusterTemplateTags"
+            }
+          }
+        },
+        "summary": "Retrieves a list of cluster template tags",
+        "tags": [
+          "v1"
+        ]
+      }
+    },
+    "/v1/clusterTemplates/validate/name": {
+      "get": {
+        "operationId": "V1ClusterTemplatesValidateName",
+        "parameters": [
+          {
+            "description": "Cluster template name",
+            "in": "query",
+            "name": "name",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Ok response without content",
+            "headers": {
+              "AuditUid": {
+                "description": "Audit uid for the request",
+                "type": "string"
+              }
+            }
+          }
+        },
+        "summary": "Validates the cluster template name",
+        "tags": [
+          "v1"
+        ]
+      }
+    },
+    "/v1/clusterTemplates/{uid}": {
+      "delete": {
+        "operationId": "V1ClusterTemplatesUidDelete",
+        "responses": {
+          "204": {
+            "description": "The resource was deleted successfully"
+          }
+        },
+        "summary": "Delete a cluster template by uid",
+        "tags": [
+          "v1"
+        ]
+      },
+      "get": {
+        "operationId": "V1ClusterTemplatesUidGet",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/v1ClusterTemplate"
+            }
+          }
+        },
+        "summary": "Returns the specified cluster template",
+        "tags": [
+          "v1"
+        ]
+      },
+      "parameters": [
+        {
+          "description": "Cluster template uid",
+          "in": "path",
+          "name": "uid",
+          "required": true,
+          "type": "string"
+        }
+      ]
+    },
+    "/v1/clusterTemplates/{uid}/metadata": {
+      "parameters": [
+        {
+          "description": "Cluster template uid",
+          "in": "path",
+          "name": "uid",
+          "required": true,
+          "type": "string"
+        }
+      ],
+      "patch": {
+        "operationId": "V1ClusterTemplatesUidMetadataUpdate",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/v1ObjectMetaInputEntitySchema"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "The resource was updated successfully"
+          }
+        },
+        "summary": "Update the specified cluster template metadata",
+        "tags": [
+          "v1"
+        ]
+      }
+    },
+    "/v1/clusterTemplates/{uid}/policies": {
+      "parameters": [
+        {
+          "description": "Cluster template uid",
+          "in": "path",
+          "name": "uid",
+          "required": true,
+          "type": "string"
+        }
+      ],
+      "patch": {
+        "operationId": "V1ClusterTemplatesUidPoliciesUpdate",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/v1ClusterTemplatePoliciesUpdateEntity"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "The resource was updated successfully"
+          }
+        },
+        "summary": "Update the specified cluster template policies",
+        "tags": [
+          "v1"
+        ]
+      }
+    },
+    "/v1/clusterTemplates/{uid}/profiles": {
+      "parameters": [
+        {
+          "description": "Cluster template uid",
+          "in": "path",
+          "name": "uid",
+          "required": true,
+          "type": "string"
+        }
+      ],
+      "put": {
+        "operationId": "V1ClusterTemplatesUidProfilesUpdate",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/v1ClusterTemplateProfilesUpdateEntity"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "The resource was updated successfully"
+          }
+        },
+        "summary": "Update the specified cluster template profiles",
+        "tags": [
+          "v1"
+        ]
+      }
+    },
+    "/v1/clusterTemplates/{uid}/profiles/variables": {
+      "parameters": [
+        {
+          "description": "Cluster template uid",
+          "in": "path",
+          "name": "uid",
+          "required": true,
+          "type": "string"
+        }
+      ],
+      "patch": {
+        "operationId": "V1ClusterTemplatesUidProfilesVariablesPatch",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/v1ClusterTemplateProfilesVariablesBatchEntity"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "The resource was updated successfully"
+          }
+        },
+        "summary": "Update variables for profiles in a cluster template",
+        "tags": [
+          "v1"
+        ]
+      }
+    },
+    "/v1/clusterTemplates/{uid}/profiles/{profileUid}/variables": {
+      "get": {
+        "operationId": "V1ClusterTemplatesUidProfilesProfileUidVariablesGet",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/v1ClusterTemplateProfileVariablesResponse"
+            }
+          }
+        },
+        "summary": "Retrieve variables for a specific profile in a cluster template",
+        "tags": [
+          "v1"
+        ]
+      },
+      "parameters": [
+        {
+          "description": "Cluster template uid",
+          "in": "path",
+          "name": "uid",
+          "required": true,
+          "type": "string"
+        },
+        {
+          "description": "Profile uid",
+          "in": "path",
+          "name": "profileUid",
+          "required": true,
+          "type": "string"
+        }
+      ]
+    },
+    "/v1/clusterTemplates/{uid}/spectroclusters/{clusterUid}/reconcile": {
+      "get": {
+        "operationId": "V1ClusterTemplatesUidClusterReconcileClusterUidGet",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/v1ClusterReconcile"
+            }
+          }
+        },
+        "summary": "Returns the cluster reconcile document for a specific cluster launched from a template",
+        "tags": [
+          "v1"
+        ]
+      },
+      "parameters": [
+        {
+          "description": "Cluster template uid",
+          "in": "path",
+          "name": "uid",
+          "required": true,
+          "type": "string"
+        },
+        {
+          "description": "Cluster uid",
+          "in": "path",
+          "name": "clusterUid",
+          "required": true,
+          "type": "string"
+        }
+      ]
+    },
     "/v1/clustergroups": {
       "post": {
         "operationId": "v1ClusterGroupsCreate",
@@ -49882,6 +53992,16 @@
           "description": "Comma seperated pack meta such as schema, presets",
           "in": "query",
           "name": "includePackMeta",
+          "type": "string"
+        },
+        {
+          "description": "Filter cluster profiles by target resource type - 'spectrocluster' for profiles suitable to launch/update clusters, 'clustertemplate' for profiles suitable to create/edit cluster template",
+          "enum": [
+            "spectrocluster",
+            "clustertemplate"
+          ],
+          "in": "query",
+          "name": "resourceType",
           "type": "string"
         }
       ],
@@ -50858,6 +54978,96 @@
         ]
       }
     },
+    "/v1/dashboard/clusterTemplates": {
+      "post": {
+        "operationId": "v1ClusterTemplatesFilterSummary",
+        "parameters": [
+          {
+            "description": "limit is a maximum number of responses to return for a list call. Maximum value of the limit is 50.\nIf more items exist, the server will set the `continue` field on the list metadata to a value that can be used with the same initial query to retrieve the next set of results.",
+            "format": "int64",
+            "in": "query",
+            "maximum": 50,
+            "name": "limit",
+            "type": "integer"
+          },
+          {
+            "description": "offset is the next index number from which the response will start. The response offset value can be used along with continue token for the pagination.",
+            "format": "int64",
+            "in": "query",
+            "name": "offset",
+            "type": "integer"
+          },
+          {
+            "description": "continue token to paginate the subsequent data items",
+            "in": "query",
+            "name": "continue",
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/v1ClusterTemplatesFilterSummarySpec"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "An array of cluster template summary items",
+            "schema": {
+              "$ref": "#/definitions/v1ClusterTemplatesSummary"
+            }
+          }
+        },
+        "summary": "Retrieves a list of cluster templates filter summary Supported filter fields - [\"clusterTemplateName\", \"tags\", \"cloudType\",\"projectUid\", \"policyUid\"] Supported sort fields - [\"clusterTemplateName\", \"creationTimestamp\", \"lastModifiedTimestamp\"]",
+        "tags": [
+          "v1"
+        ]
+      }
+    },
+    "/v1/dashboard/clusterTemplates/metadata": {
+      "get": {
+        "operationId": "v1ClusterTemplatesMetadataGet",
+        "responses": {
+          "200": {
+            "description": "An array of cluster template metadata",
+            "schema": {
+              "$ref": "#/definitions/v1ClusterTemplatesMetadata"
+            }
+          }
+        },
+        "summary": "Retrieves a list of all cluster template metadata.",
+        "tags": [
+          "v1"
+        ]
+      }
+    },
+    "/v1/dashboard/clusterTemplates/{uid}/spectroclusters/meta": {
+      "get": {
+        "operationId": "v1ClusterTemplatesUidSpectroclustersMetaGet",
+        "parameters": [
+          {
+            "description": "The UID of the cluster template",
+            "in": "path",
+            "name": "uid",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "An array of spectrocluster meta information",
+            "schema": {
+              "$ref": "#/definitions/v1SpectroClustersMeta"
+            }
+          }
+        },
+        "summary": "Retrieves spectroclusters meta information for clusters launched using the specified cluster template.",
+        "tags": [
+          "v1"
+        ]
+      }
+    },
     "/v1/dashboard/clustergroups/{uid}/hostClusters": {
       "post": {
         "operationId": "v1ClusterGroupUidHostClustersSummary",
@@ -51005,7 +55215,7 @@
             }
           }
         },
-        "summary": "Retrieves a list of cluster profiles filter summary Supported filter fields - [\"profileName\", \"tags\", \"profileType\", \"environment\"] Supported sort fields - [\"profileName\", \"environment\", \"profileType\", \"creationTimestamp\", \"lastModifiedTimestamp\"]",
+        "summary": "Retrieves a list of cluster profiles filter summary Supported filter fields - ['profileName', 'tags', 'profileType', 'environment', 'resourceType'] Supported sort fields - ['profileName', 'environment', 'profileType', 'creationTimestamp', 'lastModifiedTimestamp']",
         "tags": [
           "v1"
         ]
@@ -51247,6 +55457,70 @@
           }
         },
         "summary": "Retrieves a list of projects metadata",
+        "tags": [
+          "v1"
+        ]
+      }
+    },
+    "/v1/dashboard/spcPolicies": {
+      "post": {
+        "operationId": "v1SpcPoliciesFilterSummary",
+        "parameters": [
+          {
+            "description": "limit is a maximum number of responses to return for a list call. Maximum value of the limit is 50.\nIf more items exist, the server will set the `continue` field on the list metadata to a value that can be used with the same initial query to retrieve the next set of results.",
+            "format": "int64",
+            "in": "query",
+            "maximum": 50,
+            "name": "limit",
+            "type": "integer"
+          },
+          {
+            "description": "offset is the next index number from which the response will start. The response offset value can be used along with continue token for the pagination.",
+            "format": "int64",
+            "in": "query",
+            "name": "offset",
+            "type": "integer"
+          },
+          {
+            "description": "continue token to paginate the subsequent data items",
+            "in": "query",
+            "name": "continue",
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/v1SpcPoliciesFilterSpec"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "An array of spc policies summary items",
+            "schema": {
+              "$ref": "#/definitions/v1SpcPoliciesSummary"
+            }
+          }
+        },
+        "summary": "Retrieves a list of spc policies filter summary Supported filter fields - [\"policyName\", \"tags\", \"policyType\"] Supported sort fields - [\"policyName\", \"policyType\", \"creationTimestamp\", \"lastModifiedTimestamp\"]",
+        "tags": [
+          "v1"
+        ]
+      }
+    },
+    "/v1/dashboard/spcPolicies/metadata": {
+      "get": {
+        "operationId": "v1SpcPoliciesMetadataGet",
+        "responses": {
+          "200": {
+            "description": "An array of spc policies metadata",
+            "schema": {
+              "$ref": "#/definitions/v1SpcPoliciesMetadata"
+            }
+          }
+        },
+        "summary": "Retrieves a list of all spc policies metadata.",
         "tags": [
           "v1"
         ]
@@ -54230,6 +58504,220 @@
         ]
       }
     },
+    "/v1/overlords/apache-cloudstack/manifest": {
+      "get": {
+        "operationId": "v1OverlordsCloudStackManifest",
+        "responses": {
+          "200": {
+            "description": "(empty)",
+            "schema": {
+              "$ref": "#/definitions/v1OverlordManifest"
+            }
+          }
+        },
+        "summary": "Returns the manifests required for the private gateway installation",
+        "tags": [
+          "v1"
+        ]
+      },
+      "parameters": [
+        {
+          "in": "query",
+          "name": "pairingCode",
+          "required": true,
+          "type": "string"
+        }
+      ]
+    },
+    "/v1/overlords/apache-cloudstack/{uid}/account": {
+      "parameters": [
+        {
+          "in": "path",
+          "name": "uid",
+          "required": true,
+          "type": "string"
+        }
+      ],
+      "post": {
+        "operationId": "v1OverlordsUidCloudStackAccountCreate",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/v1OverlordCloudStackAccountCreate"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created successfully",
+            "headers": {
+              "AuditUid": {
+                "description": "Audit uid for the request",
+                "type": "string"
+              }
+            },
+            "schema": {
+              "$ref": "#/definitions/v1Uid"
+            }
+          }
+        },
+        "summary": "create the CloudStack cloudaccount for the private gateway",
+        "tags": [
+          "v1"
+        ]
+      },
+      "put": {
+        "operationId": "v1OverlordsUidCloudStackAccountUpdate",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/v1OverlordCloudStackAccountEntity"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "The resource was updated successfully"
+          }
+        },
+        "summary": "update the CloudStack cloudaccount for the private gateway",
+        "tags": [
+          "v1"
+        ]
+      }
+    },
+    "/v1/overlords/apache-cloudstack/{uid}/account/validate": {
+      "parameters": [
+        {
+          "in": "path",
+          "name": "uid",
+          "required": true,
+          "type": "string"
+        }
+      ],
+      "post": {
+        "description": "Validates CloudStack account credentials and domain. Verifies API connectivity and that the specified domain exists.",
+        "operationId": "v1OverlordsUidCloudStackAccountValidate",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "properties": {
+                "account": {
+                  "$ref": "#/definitions/v1CloudStackCloudAccount"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Ok response without content",
+            "headers": {
+              "AuditUid": {
+                "description": "Audit uid for the request",
+                "type": "string"
+              }
+            }
+          }
+        },
+        "summary": "validate the CloudStack cloudaccount for the private gateway",
+        "tags": [
+          "v1"
+        ]
+      }
+    },
+    "/v1/overlords/apache-cloudstack/{uid}/cloudconfig": {
+      "parameters": [
+        {
+          "in": "path",
+          "name": "uid",
+          "required": true,
+          "type": "string"
+        }
+      ],
+      "post": {
+        "operationId": "v1OverlordsUidCloudStackCloudConfigCreate",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/v1OverlordCloudStackCloudConfig"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created successfully",
+            "headers": {
+              "AuditUid": {
+                "description": "Audit uid for the request",
+                "type": "string"
+              }
+            },
+            "schema": {
+              "$ref": "#/definitions/v1Uid"
+            }
+          }
+        },
+        "summary": "create the CloudStack cloud config for the private gateway",
+        "tags": [
+          "v1"
+        ]
+      },
+      "put": {
+        "operationId": "v1OverlordsUidCloudStackCloudConfigUpdate",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/v1OverlordCloudStackCloudConfig"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "The resource was updated successfully"
+          }
+        },
+        "summary": "update the CloudStack cloud config for the private gateway",
+        "tags": [
+          "v1"
+        ]
+      }
+    },
+    "/v1/overlords/apache-cloudstack/{uid}/clusterprofile": {
+      "get": {
+        "operationId": "v1OverlordsUidCloudStackClusterProfile",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/v1ClusterProfile"
+            }
+          }
+        },
+        "summary": "Returns the specified CloudStack private gateway cluster profile",
+        "tags": [
+          "v1"
+        ]
+      },
+      "parameters": [
+        {
+          "in": "path",
+          "name": "uid",
+          "required": true,
+          "type": "string"
+        }
+      ]
+    },
     "/v1/overlords/maas/manifest": {
       "get": {
         "operationId": "V1OverlordsMaasManifest",
@@ -54442,6 +58930,110 @@
           "type": "string"
         }
       ]
+    },
+    "/v1/overlords/maas/{uid}/pools": {
+      "get": {
+        "operationId": "v1OverlordsUidMaasPoolsList",
+        "responses": {
+          "200": {
+            "description": "(empty)",
+            "schema": {
+              "$ref": "#/definitions/v1IpPools"
+            }
+          }
+        },
+        "summary": "Retrieves a list of IP Pools for the specified maas private gateway",
+        "tags": [
+          "v1"
+        ]
+      },
+      "parameters": [
+        {
+          "in": "path",
+          "name": "uid",
+          "required": true,
+          "type": "string"
+        }
+      ],
+      "post": {
+        "operationId": "v1OverlordsUidMaasPoolCreate",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/v1IpPoolInputEntity"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created successfully",
+            "headers": {
+              "AuditUid": {
+                "description": "Audit uid for the request",
+                "type": "string"
+              }
+            },
+            "schema": {
+              "$ref": "#/definitions/v1Uid"
+            }
+          }
+        },
+        "summary": "Creates an IP pool definition for the specified maas private gateway",
+        "tags": [
+          "v1"
+        ]
+      }
+    },
+    "/v1/overlords/maas/{uid}/pools/{poolUid}": {
+      "delete": {
+        "operationId": "v1OverlordsUidMaasPoolDelete",
+        "responses": {
+          "204": {
+            "description": "The resource was deleted successfully"
+          }
+        },
+        "summary": "Deletes the maas private gateway's specified IP Pool data",
+        "tags": [
+          "v1"
+        ]
+      },
+      "parameters": [
+        {
+          "in": "path",
+          "name": "uid",
+          "required": true,
+          "type": "string"
+        },
+        {
+          "in": "path",
+          "name": "poolUid",
+          "required": true,
+          "type": "string"
+        }
+      ],
+      "put": {
+        "operationId": "v1OverlordsUidMaasPoolUpdate",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/v1IpPoolInputEntity"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "The resource was updated successfully"
+          }
+        },
+        "summary": "Updates the maas private gateway's specified IP Pool data",
+        "tags": [
+          "v1"
+        ]
+      }
     },
     "/v1/overlords/migrate": {
       "post": {
@@ -54687,7 +59279,8 @@
             "enum": [
               "vsphere",
               "openstack",
-              "maas"
+              "maas",
+              "apache-cloudstack"
             ],
             "in": "query",
             "name": "cloudType",
@@ -57664,6 +62257,161 @@
         ]
       }
     },
+    "/v1/spcPolicies/maintenance": {
+      "post": {
+        "operationId": "V1SpcPoliciesMaintenanceCreate",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/v1SpcPolicyEntity"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created successfully",
+            "headers": {
+              "AuditUid": {
+                "description": "Audit uid for the request",
+                "type": "string"
+              }
+            },
+            "schema": {
+              "$ref": "#/definitions/v1Uid"
+            }
+          }
+        },
+        "summary": "Create a new maintenance policy",
+        "tags": [
+          "v1"
+        ]
+      }
+    },
+    "/v1/spcPolicies/maintenance/{uid}": {
+      "get": {
+        "operationId": "V1SpcPoliciesMaintenanceUidGet",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/v1SpcPolicyEntity"
+            }
+          }
+        },
+        "summary": "Returns the specified maintenance policy",
+        "tags": [
+          "v1"
+        ]
+      },
+      "parameters": [
+        {
+          "description": "Policy uid",
+          "in": "path",
+          "name": "uid",
+          "required": true,
+          "type": "string"
+        }
+      ],
+      "put": {
+        "operationId": "V1SpcPoliciesMaintenanceUidUpdate",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/v1SpcPolicyEntity"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "The resource was updated successfully"
+          }
+        },
+        "summary": "Updates the specified maintenance policy",
+        "tags": [
+          "v1"
+        ]
+      }
+    },
+    "/v1/spcPolicies/tags": {
+      "get": {
+        "operationId": "V1SpcPoliciesTagsGet",
+        "responses": {
+          "200": {
+            "description": "An array of spc policy tags",
+            "schema": {
+              "$ref": "#/definitions/v1SpcPolicyTags"
+            }
+          }
+        },
+        "summary": "Retrieves a list of spc policy tags",
+        "tags": [
+          "v1"
+        ]
+      }
+    },
+    "/v1/spcPolicies/{policyType}/validate/name": {
+      "get": {
+        "operationId": "V1SpcPoliciesValidateName",
+        "parameters": [
+          {
+            "description": "Spc policy name",
+            "in": "query",
+            "name": "name",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Ok response without content",
+            "headers": {
+              "AuditUid": {
+                "description": "Audit uid for the request",
+                "type": "string"
+              }
+            }
+          }
+        },
+        "summary": "Validates the spc policy name",
+        "tags": [
+          "v1"
+        ]
+      },
+      "parameters": [
+        {
+          "description": "Spc policy type",
+          "in": "path",
+          "name": "policyType",
+          "required": true,
+          "type": "string"
+        }
+      ]
+    },
+    "/v1/spcPolicies/{uid}": {
+      "delete": {
+        "operationId": "V1SpcPoliciesUidDelete",
+        "responses": {
+          "204": {
+            "description": "The resource was deleted successfully"
+          }
+        },
+        "summary": "Delete a policy by uid",
+        "tags": [
+          "v1"
+        ]
+      },
+      "parameters": [
+        {
+          "in": "path",
+          "name": "uid",
+          "required": true,
+          "type": "string"
+        }
+      ]
+    },
     "/v1/spectroclusters/aks": {
       "post": {
         "operationId": "v1SpectroClustersAksCreate",
@@ -57754,6 +62502,133 @@
           }
         },
         "summary": "Validates AKS cluster create operation",
+        "tags": [
+          "v1"
+        ]
+      }
+    },
+    "/v1/spectroclusters/apache-cloudstack": {
+      "post": {
+        "operationId": "v1SpectroClustersCloudStackCreate",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/v1SpectroCloudStackClusterEntity"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created successfully",
+            "headers": {
+              "AuditUid": {
+                "description": "Audit uid for the request",
+                "type": "string"
+              }
+            },
+            "schema": {
+              "$ref": "#/definitions/v1Uid"
+            }
+          }
+        },
+        "summary": "Creates a CloudStack cluster",
+        "tags": [
+          "v1"
+        ]
+      }
+    },
+    "/v1/spectroclusters/apache-cloudstack/import": {
+      "post": {
+        "operationId": "v1SpectroClustersCloudStackImport",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/v1SpectroCloudStackClusterImportEntity"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created successfully",
+            "headers": {
+              "AuditUid": {
+                "description": "Audit uid for the request",
+                "type": "string"
+              }
+            },
+            "schema": {
+              "$ref": "#/definitions/v1Uid"
+            }
+          }
+        },
+        "summary": "Imports a CloudStack cluster",
+        "tags": [
+          "v1"
+        ]
+      }
+    },
+    "/v1/spectroclusters/apache-cloudstack/rate": {
+      "post": {
+        "operationId": "v1SpectroClustersCloudStackRate",
+        "parameters": [
+          {
+            "default": "hourly",
+            "enum": [
+              "hourly",
+              "monthly",
+              "yearly"
+            ],
+            "in": "query",
+            "name": "periodType",
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/v1SpectroCloudStackClusterRateEntity"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "CloudStack Cluster estimated rate response",
+            "schema": {
+              "$ref": "#/definitions/v1SpectroClusterRate"
+            }
+          }
+        },
+        "summary": "Get CloudStack cluster estimated rate information",
+        "tags": [
+          "v1"
+        ]
+      }
+    },
+    "/v1/spectroclusters/apache-cloudstack/validate": {
+      "post": {
+        "operationId": "v1SpectroClustersCloudStackValidate",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/v1SpectroCloudStackClusterEntity"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "CloudStack Cluster validation response",
+            "schema": {
+              "$ref": "#/definitions/v1SpectroClusterValidatorResponse"
+            }
+          }
+        },
+        "summary": "Validates CloudStack cluster create operation",
         "tags": [
           "v1"
         ]
@@ -58088,6 +62963,72 @@
           "v1"
         ]
       }
+    },
+    "/v1/spectroclusters/clusterTemplates/{uid}/clusters/upgrade": {
+      "parameters": [
+        {
+          "description": "Cluster template uid",
+          "in": "path",
+          "name": "uid",
+          "required": true,
+          "type": "string"
+        }
+      ],
+      "patch": {
+        "operationId": "V1SpectroClustersTemplatesUidClustersUpgrade",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/v1ClusterTemplateUpgradeSpec"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "The resource was updated successfully"
+          }
+        },
+        "summary": "Upgrades clusters launched from the specified cluster template",
+        "tags": [
+          "v1"
+        ]
+      }
+    },
+    "/v1/spectroclusters/clusterTemplates/{uid}/profiles": {
+      "get": {
+        "operationId": "V1SpectroClustersClusterTemplatesUIDProfilesGet",
+        "parameters": [
+          {
+            "description": "includes pack meta such as schema, presets",
+            "in": "query",
+            "name": "includePackMeta",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/v1SpectroClusterProfileList"
+            }
+          }
+        },
+        "summary": "Returns the associated profiles for all the cluster of launched from the specified cluster template",
+        "tags": [
+          "v1"
+        ]
+      },
+      "parameters": [
+        {
+          "description": "Cluster template uid",
+          "in": "path",
+          "name": "uid",
+          "required": true,
+          "type": "string"
+        }
+      ]
     },
     "/v1/spectroclusters/config/edgeInstaller": {
       "get": {
@@ -60014,6 +64955,38 @@
           }
         },
         "summary": "Updates the specified cluster OS patch configuration",
+        "tags": [
+          "v1"
+        ]
+      }
+    },
+    "/v1/spectroclusters/{uid}/clusterConfig/timezone": {
+      "parameters": [
+        {
+          "description": "Cluster uid",
+          "in": "path",
+          "name": "uid",
+          "required": true,
+          "type": "string"
+        }
+      ],
+      "patch": {
+        "operationId": "v1SpectroClustersUidTimezoneUpdate",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/v1TimezoneUpdateEntity"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "The resource was updated successfully"
+          }
+        },
+        "summary": "Updates the specified cluster's timezone configuration",
         "tags": [
           "v1"
         ]
