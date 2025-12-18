@@ -7,7 +7,6 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
-
 jobs:
   run-ci:
     # runs-on: ubuntu-latest
@@ -46,6 +45,14 @@ jobs:
 
       - name: Setup Copywrite
         uses: hashicorp/setup-copywrite@v1.1.3
+
+      - name: Checkout Pax Repository
+        uses: actions/checkout@v5
+        with:
+          repository: spectrocloud/hapi
+          path: api/hapi
+          token: ${{ steps.import-secrets.outputs.VAULT_GITHUB_TOKEN }}
+          fetch-depth: "0"
 
       - name: Install dependencies
         run: make install-dependencies
