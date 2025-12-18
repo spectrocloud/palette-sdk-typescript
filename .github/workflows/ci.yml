@@ -1,18 +1,42 @@
-name: CI
+name: Pre-merge Checks
 on:
-  push:
-  workflow_dispatch:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
 
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
+
 jobs:
-  build-with-coverage:
+  run-ci:
+    # runs-on: ubuntu-latest
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    if: ${{ !github.event.pull_request.draft && github.actor != 'dependabot[bot]' && github.actor != 'dependabot-preview[bot]' }}
     steps:
+      # If the condition above is not met, aka, the PR is not in draft status, then this step is skipped.
+      # Because this step is part of the critical path, omission of this step will result in remaining CI steps not gettinge executed.
+      # As of 8/8/2022 there is now way to enforce this beahvior in GitHub Actions CI.
+      - run: exit 0
+
+  build-with-latest-hapi-release:
+    runs-on: ubuntu-latest
+    needs: [run-ci]
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Import Vault Credentials
+        id: import-secrets
+        uses: spectrocloud/palette-sdk-typescript/.github/actions/vault-credentials@main
+
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          token: ${{ steps.import-secrets.outputs.VAULT_GITHUB_TOKEN }}
 
       - name: Setup Node.js environment
         uses: actions/setup-node@v6.1.0
@@ -21,16 +45,10 @@ jobs:
           cache: "npm"
 
       - name: Setup Copywrite
-        uses: hashicorp/setup-copywrite
+        uses: hashicorp/setup-copywrite@v1.1.3
 
       - name: Install dependencies
         run: make install-dependencies
-
-      - name: Configure git for private modules
-        env:
-          TOKEN: ${{ secrets.SPECTRO_TOKEN }}
-          USER: ${{ secrets.SPECTRO_USER }}
-        run: git config --global url."https://${USER}:${TOKEN}@github.com".insteadOf "https://github.com"
 
       - name: Ensure Reviewable
         run: make check-diff
