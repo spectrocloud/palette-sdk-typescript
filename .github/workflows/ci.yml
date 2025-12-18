@@ -31,7 +31,7 @@ jobs:
     steps:
       - name: Import Vault Credentials
         id: import-secrets
-        uses: spectrocloud/palette-sdk-typescript/.github/workflows/actions/vault-credentials@main
+        uses: spectrocloud/palette-sdk-typescript/.github/actions/vault-credentials@main
 
       - name: Checkout
         uses: actions/checkout@v4
