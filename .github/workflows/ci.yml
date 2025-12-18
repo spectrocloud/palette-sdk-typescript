@@ -35,8 +35,8 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          token: ${{ steps.import-secrets.outputs.VAULT_GITHUB_TOKEN }}
+        # with:
+        #   token: ${{ steps.import-secrets.outputs.VAULT_GITHUB_TOKEN }}
 
       - name: Setup Node.js environment
         uses: actions/setup-node@v6.1.0
