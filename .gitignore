@@ -29,6 +29,9 @@ yarn-error.log*
 .env.test.local
 .env.production.local
 
+# Credentials
+.netrc
+
 # OS generated files
 .DS_Store
 .DS_Store?
