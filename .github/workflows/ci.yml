@@ -34,8 +34,8 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@v6.0.1
-        # with:
-        #   token: ${{ steps.import-secrets.outputs.VAULT_GITHUB_TOKEN }}
+        with:
+          token: ${{ steps.import-secrets.outputs.VAULT_GITHUB_TOKEN }}
 
       - name: Setup Node.js environment
         uses: actions/setup-node@v6.1.0
@@ -52,6 +52,7 @@ jobs:
           repository: spectrocloud/hapi
           path: api/hapi
           fetch-depth: "0"
+          token: ${{ steps.import-secrets.outputs.VAULT_GITHUB_TOKEN }}
 
       - name: Install dependencies
         run: make install-dependencies
