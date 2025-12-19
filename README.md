@@ -51,7 +51,6 @@ import {
   type SpectroClustersMetadata,
 } from "palette-sdk-typescript";
 
-
 // Configure authentication
 const config = {
   headers: {
@@ -61,7 +60,7 @@ const config = {
   },
   // Configure custom base URL (optional)
   // By default, the SDK uses https://api.spectrocloud.com
-  baseUrl: 'https://your-palette-host.com'
+  baseUrl: "https://your-palette-host.com",
 };
 
 // Get all clusters
@@ -80,6 +79,7 @@ If a project UID is not specified, then the Palette API will use the tenant scop
 ### Base URL Configuration
 
 By default, the PaletteSDK targets `https://api.spectrocloud.com`. If you have a different Palette instance, such as a self-hosted Palette instance, you can configure the base URL.
+
 ```typescript
 const config = {
   headers: {
@@ -88,7 +88,7 @@ const config = {
     ProjectUID: process.env.PROJECT_UID,
   },
   // Set custom base URL
-  baseUrl: 'https://your-palette-host.com'
+  baseUrl: "https://your-palette-host.com",
 };
 
 const response: SpectroClustersMetadata = await spectroClustersMetadataGet(
@@ -96,6 +96,7 @@ const response: SpectroClustersMetadata = await spectroClustersMetadataGet(
   config
 );
 ```
+
 The SDK will now use your custom URL(`https://your-palette-host.com`) for all API calls.
 
 ## Contributing
@@ -123,7 +124,7 @@ This project is licensed under the Apache License 2.0. See the [LICENSE](LICENSE
 
 For issues and questions:
 
-- **SDK Issues**: Open an issue on GitHub
+- **SDK Issues**: Open an issue on GitHub.
 - **API Documentation**: Visit the [Palette API Documentation](https://docs.spectrocloud.com/api/)
 - **Palette Support**: Contact Spectro Cloud support
 
