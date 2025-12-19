@@ -72,4 +72,7 @@ jobs:
         run: make generate
 
       - name: Test
+        env:
+          # Expires 2026-12-31. Tenant is https://palette-ai-rsch.console.spectrocloud.com/
+          PALETTE_API_KEY: ${{ secrets.PALETTE_API_KEY }}
         run: make test
