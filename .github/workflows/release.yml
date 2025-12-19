@@ -142,7 +142,13 @@ jobs:
         if: steps.tag.outputs.SAME_VERSION != 'true'
         env:
           NPM_VERSION: ${{ steps.tag.outputs.NPM_VERSION }}
-        run: npm version "$NPM_VERSION" --no-git-tag-version
+        run: |
+          CURRENT_VERSION=$(node -p "require('./package.json').version")
+          if [ "$CURRENT_VERSION" = "$NPM_VERSION" ]; then
+            echo "package.json already at version $NPM_VERSION, skipping"
+          else
+            npm version "$NPM_VERSION" --no-git-tag-version
+          fi
 
       - name: Publish to npm
         if: steps.tag.outputs.SAME_VERSION != 'true'
