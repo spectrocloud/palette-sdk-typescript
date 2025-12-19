@@ -30956,6 +30956,7 @@ components:
           - isControlPlane: true
             capacityType: on-demand
             rootDeviceSize: 5
+            hostResourceGroupArn: hostResourceGroupArn
             instanceType: instanceType
             nodeRepaveInterval: 1
             additionalLabels:
@@ -31007,9 +31008,14 @@ components:
             - labels
             - labels
             updateStrategy:
+              maxSurge: maxSurge
+              maxUnavailable: maxUnavailable
               type: RollingUpdateScaleOut
             additionalTags:
               key: additionalTags
+            licenseConfigurationArns:
+            - licenseConfigurationArns
+            - licenseConfigurationArns
             machinePoolProperties:
               archType: amd64
             size: 5
@@ -31023,6 +31029,7 @@ components:
           - isControlPlane: true
             capacityType: on-demand
             rootDeviceSize: 5
+            hostResourceGroupArn: hostResourceGroupArn
             instanceType: instanceType
             nodeRepaveInterval: 1
             additionalLabels:
@@ -31074,9 +31081,14 @@ components:
             - labels
             - labels
             updateStrategy:
+              maxSurge: maxSurge
+              maxUnavailable: maxUnavailable
               type: RollingUpdateScaleOut
             additionalTags:
               key: additionalTags
+            licenseConfigurationArns:
+            - licenseConfigurationArns
+            - licenseConfigurationArns
             machinePoolProperties:
               archType: amd64
             size: 5
@@ -31176,6 +31188,7 @@ components:
         - isControlPlane: true
           capacityType: on-demand
           rootDeviceSize: 5
+          hostResourceGroupArn: hostResourceGroupArn
           instanceType: instanceType
           nodeRepaveInterval: 1
           additionalLabels:
@@ -31227,9 +31240,14 @@ components:
           - labels
           - labels
           updateStrategy:
+            maxSurge: maxSurge
+            maxUnavailable: maxUnavailable
             type: RollingUpdateScaleOut
           additionalTags:
             key: additionalTags
+          licenseConfigurationArns:
+          - licenseConfigurationArns
+          - licenseConfigurationArns
           machinePoolProperties:
             archType: amd64
           size: 5
@@ -31243,6 +31261,7 @@ components:
         - isControlPlane: true
           capacityType: on-demand
           rootDeviceSize: 5
+          hostResourceGroupArn: hostResourceGroupArn
           instanceType: instanceType
           nodeRepaveInterval: 1
           additionalLabels:
@@ -31294,9 +31313,14 @@ components:
           - labels
           - labels
           updateStrategy:
+            maxSurge: maxSurge
+            maxUnavailable: maxUnavailable
             type: RollingUpdateScaleOut
           additionalTags:
             key: additionalTags
+          licenseConfigurationArns:
+          - licenseConfigurationArns
+          - licenseConfigurationArns
           machinePoolProperties:
             archType: amd64
           size: 5
@@ -32025,9 +32049,19 @@ components:
           - on-demand
           - spot
           type: string
+        hostResourceGroupArn:
+          description: ARN of AWS Host Resource Group for node placement on dedicated
+            hosts
+          type: string
         instanceType:
           description: instance type
           type: string
+        licenseConfigurationArns:
+          description: List of AWS License Configuration ARNs (required when hostResourceGroupArn
+            is specified)
+          items:
+            type: string
+          type: array
         rootDeviceSize:
           description: rootDeviceSize in GBs
           format: int64
@@ -32048,6 +32082,7 @@ components:
         isControlPlane: true
         capacityType: on-demand
         rootDeviceSize: 5
+        hostResourceGroupArn: hostResourceGroupArn
         instanceType: instanceType
         nodeRepaveInterval: 1
         additionalLabels:
@@ -32099,9 +32134,14 @@ components:
         - labels
         - labels
         updateStrategy:
+          maxSurge: maxSurge
+          maxUnavailable: maxUnavailable
           type: RollingUpdateScaleOut
         additionalTags:
           key: additionalTags
+        licenseConfigurationArns:
+        - licenseConfigurationArns
+        - licenseConfigurationArns
         machinePoolProperties:
           archType: amd64
         size: 5
@@ -32142,6 +32182,10 @@ components:
           - on-demand
           - spot
           type: string
+        hostResourceGroupArn:
+          description: ARN of AWS Host Resource Group for node placement on dedicated
+            hosts
+          type: string
         instanceConfig:
           $ref: "#/components/schemas/v1InstanceConfig"
         instanceType:
@@ -32154,6 +32198,12 @@ components:
         labels:
           description: "labels for this pool, example: control-plane/worker, gpu,\
             \ windows"
+          items:
+            type: string
+          type: array
+        licenseConfigurationArns:
+          description: List of AWS License Configuration ARNs (required when hostResourceGroupArn
+            is specified)
           items:
             type: string
           type: array
@@ -33282,6 +33332,8 @@ components:
             - labels
             - labels
             updateStrategy:
+              maxSurge: maxSurge
+              maxUnavailable: maxUnavailable
               type: RollingUpdateScaleOut
             additionalTags:
               key: additionalTags
@@ -33329,6 +33381,8 @@ components:
             - labels
             - labels
             updateStrategy:
+              maxSurge: maxSurge
+              maxUnavailable: maxUnavailable
               type: RollingUpdateScaleOut
             additionalTags:
               key: additionalTags
@@ -33476,6 +33530,8 @@ components:
           - labels
           - labels
           updateStrategy:
+            maxSurge: maxSurge
+            maxUnavailable: maxUnavailable
             type: RollingUpdateScaleOut
           additionalTags:
             key: additionalTags
@@ -33523,6 +33579,8 @@ components:
           - labels
           - labels
           updateStrategy:
+            maxSurge: maxSurge
+            maxUnavailable: maxUnavailable
             type: RollingUpdateScaleOut
           additionalTags:
             key: additionalTags
@@ -33988,6 +34046,8 @@ components:
         - labels
         - labels
         updateStrategy:
+          maxSurge: maxSurge
+          maxUnavailable: maxUnavailable
           type: RollingUpdateScaleOut
         additionalTags:
           key: additionalTags
@@ -36416,6 +36476,7 @@ components:
               name: name
               id: id
             isControlPlane: true
+            overrideKubeadmConfiguration: overrideKubeadmConfiguration
             additionalAnnotations:
               key: additionalAnnotations
             nodeRepaveInterval: 1
@@ -36448,6 +36509,8 @@ components:
             - labels
             - labels
             updateStrategy:
+              maxSurge: maxSurge
+              maxUnavailable: maxUnavailable
               type: RollingUpdateScaleOut
             additionalTags:
               key: additionalTags
@@ -36463,6 +36526,7 @@ components:
               name: name
               id: id
             isControlPlane: true
+            overrideKubeadmConfiguration: overrideKubeadmConfiguration
             additionalAnnotations:
               key: additionalAnnotations
             nodeRepaveInterval: 1
@@ -36495,6 +36559,8 @@ components:
             - labels
             - labels
             updateStrategy:
+              maxSurge: maxSurge
+              maxUnavailable: maxUnavailable
               type: RollingUpdateScaleOut
             additionalTags:
               key: additionalTags
@@ -36592,6 +36658,7 @@ components:
             name: name
             id: id
           isControlPlane: true
+          overrideKubeadmConfiguration: overrideKubeadmConfiguration
           additionalAnnotations:
             key: additionalAnnotations
           nodeRepaveInterval: 1
@@ -36624,6 +36691,8 @@ components:
           - labels
           - labels
           updateStrategy:
+            maxSurge: maxSurge
+            maxUnavailable: maxUnavailable
             type: RollingUpdateScaleOut
           additionalTags:
             key: additionalTags
@@ -36639,6 +36708,7 @@ components:
             name: name
             id: id
           isControlPlane: true
+          overrideKubeadmConfiguration: overrideKubeadmConfiguration
           additionalAnnotations:
             key: additionalAnnotations
           nodeRepaveInterval: 1
@@ -36671,6 +36741,8 @@ components:
           - labels
           - labels
           updateStrategy:
+            maxSurge: maxSurge
+            maxUnavailable: maxUnavailable
             type: RollingUpdateScaleOut
           additionalTags:
             key: additionalTags
@@ -37013,11 +37085,6 @@ components:
     v1CloudStackMachineConfig:
       description: CloudStack-specific machine configuration
       properties:
-        additionalAnnotations:
-          additionalProperties:
-            type: string
-          description: Custom annotations for CAPI machine objects and nodes
-          type: object
         instanceConfig:
           $ref: "#/components/schemas/v1InstanceConfig"
         networks:
@@ -37083,11 +37150,6 @@ components:
       type: object
     v1CloudStackMachinePoolCloudConfigEntity:
       properties:
-        additionalAnnotations:
-          additionalProperties:
-            type: string
-          description: Custom annotations for CAPI machine objects and nodes
-          type: object
         instanceConfig:
           $ref: "#/components/schemas/v1InstanceConfig"
         networks:
@@ -37112,6 +37174,7 @@ components:
           name: name
           id: id
         isControlPlane: true
+        overrideKubeadmConfiguration: overrideKubeadmConfiguration
         additionalAnnotations:
           key: additionalAnnotations
         nodeRepaveInterval: 1
@@ -37144,6 +37207,8 @@ components:
         - labels
         - labels
         updateStrategy:
+          maxSurge: maxSurge
+          maxUnavailable: maxUnavailable
           type: RollingUpdateScaleOut
         additionalTags:
           key: additionalTags
@@ -47941,6 +48006,13 @@ components:
                   networkName: networkName
               nodeSelector:
                 key: nodeSelector
+              resourceClaims:
+              - resourceClaimName: resourceClaimName
+                name: name
+                resourceClaimTemplateName: resourceClaimTemplateName
+              - resourceClaimName: resourceClaimName
+                name: name
+                resourceClaimTemplateName: resourceClaimTemplateName
               hostname: hostname
               tolerations:
               - effect: effect
@@ -47999,6 +48071,8 @@ components:
                   acpi:
                     enabled: true
                   pvspinlock:
+                    enabled: true
+                  hypervPassthrough:
                     enabled: true
                   hyperv:
                     vpindex:
@@ -48265,6 +48339,7 @@ components:
                       useSerial: true
                     efi:
                       secureBoot: true
+                      persistent: true
                   uuid: uuid
                   kernelBoot:
                     container:
@@ -48748,6 +48823,8 @@ components:
                   pullMethod: pullMethod
                   secretRef: secretRef
                   certConfigMap: certConfigMap
+                  platform:
+                    architecture: architecture
                   url: url
                 vddk:
                   backingFile: backingFile
@@ -48763,6 +48840,9 @@ components:
                   diskId: diskId
                   url: url
                 upload: "{}"
+                gcs:
+                  secretRef: secretRef
+                  url: url
                 http:
                   secretExtraHeaders:
                   - secretExtraHeaders
@@ -48776,8 +48856,16 @@ components:
                 pvc:
                   name: name
                   namespace: namespace
+                snapshot:
+                  name: name
+                  namespace: namespace
               storage:
                 storageClassName: storageClassName
+                dataSourceRef:
+                  apiGroup: apiGroup
+                  kind: kind
+                  name: name
+                  namespace: namespace
                 volumeName: volumeName
                 resources:
                   requests:
@@ -48919,6 +49007,8 @@ components:
                   pullMethod: pullMethod
                   secretRef: secretRef
                   certConfigMap: certConfigMap
+                  platform:
+                    architecture: architecture
                   url: url
                 vddk:
                   backingFile: backingFile
@@ -48934,6 +49024,9 @@ components:
                   diskId: diskId
                   url: url
                 upload: "{}"
+                gcs:
+                  secretRef: secretRef
+                  url: url
                 http:
                   secretExtraHeaders:
                   - secretExtraHeaders
@@ -48947,8 +49040,16 @@ components:
                 pvc:
                   name: name
                   namespace: namespace
+                snapshot:
+                  name: name
+                  namespace: namespace
               storage:
                 storageClassName: storageClassName
+                dataSourceRef:
+                  apiGroup: apiGroup
+                  kind: kind
+                  name: name
+                  namespace: namespace
                 volumeName: volumeName
                 resources:
                   requests:
@@ -49567,6 +49668,13 @@ components:
                     networkName: networkName
                 nodeSelector:
                   key: nodeSelector
+                resourceClaims:
+                - resourceClaimName: resourceClaimName
+                  name: name
+                  resourceClaimTemplateName: resourceClaimTemplateName
+                - resourceClaimName: resourceClaimName
+                  name: name
+                  resourceClaimTemplateName: resourceClaimTemplateName
                 hostname: hostname
                 tolerations:
                 - effect: effect
@@ -49625,6 +49733,8 @@ components:
                     acpi:
                       enabled: true
                     pvspinlock:
+                      enabled: true
+                    hypervPassthrough:
                       enabled: true
                     hyperv:
                       vpindex:
@@ -49891,6 +50001,7 @@ components:
                         useSerial: true
                       efi:
                         secureBoot: true
+                        persistent: true
                     uuid: uuid
                     kernelBoot:
                       container:
@@ -50374,6 +50485,8 @@ components:
                     pullMethod: pullMethod
                     secretRef: secretRef
                     certConfigMap: certConfigMap
+                    platform:
+                      architecture: architecture
                     url: url
                   vddk:
                     backingFile: backingFile
@@ -50389,6 +50502,9 @@ components:
                     diskId: diskId
                     url: url
                   upload: "{}"
+                  gcs:
+                    secretRef: secretRef
+                    url: url
                   http:
                     secretExtraHeaders:
                     - secretExtraHeaders
@@ -50402,8 +50518,16 @@ components:
                   pvc:
                     name: name
                     namespace: namespace
+                  snapshot:
+                    name: name
+                    namespace: namespace
                 storage:
                   storageClassName: storageClassName
+                  dataSourceRef:
+                    apiGroup: apiGroup
+                    kind: kind
+                    name: name
+                    namespace: namespace
                   volumeName: volumeName
                   resources:
                     requests:
@@ -50545,6 +50669,8 @@ components:
                     pullMethod: pullMethod
                     secretRef: secretRef
                     certConfigMap: certConfigMap
+                    platform:
+                      architecture: architecture
                     url: url
                   vddk:
                     backingFile: backingFile
@@ -50560,6 +50686,9 @@ components:
                     diskId: diskId
                     url: url
                   upload: "{}"
+                  gcs:
+                    secretRef: secretRef
+                    url: url
                   http:
                     secretExtraHeaders:
                     - secretExtraHeaders
@@ -50573,8 +50702,16 @@ components:
                   pvc:
                     name: name
                     namespace: namespace
+                  snapshot:
+                    name: name
+                    namespace: namespace
                 storage:
                   storageClassName: storageClassName
+                  dataSourceRef:
+                    apiGroup: apiGroup
+                    kind: kind
+                    name: name
+                    namespace: namespace
                   volumeName: volumeName
                   resources:
                     requests:
@@ -51162,6 +51299,13 @@ components:
                     networkName: networkName
                 nodeSelector:
                   key: nodeSelector
+                resourceClaims:
+                - resourceClaimName: resourceClaimName
+                  name: name
+                  resourceClaimTemplateName: resourceClaimTemplateName
+                - resourceClaimName: resourceClaimName
+                  name: name
+                  resourceClaimTemplateName: resourceClaimTemplateName
                 hostname: hostname
                 tolerations:
                 - effect: effect
@@ -51220,6 +51364,8 @@ components:
                     acpi:
                       enabled: true
                     pvspinlock:
+                      enabled: true
+                    hypervPassthrough:
                       enabled: true
                     hyperv:
                       vpindex:
@@ -51486,6 +51632,7 @@ components:
                         useSerial: true
                       efi:
                         secureBoot: true
+                        persistent: true
                     uuid: uuid
                     kernelBoot:
                       container:
@@ -51969,6 +52116,8 @@ components:
                     pullMethod: pullMethod
                     secretRef: secretRef
                     certConfigMap: certConfigMap
+                    platform:
+                      architecture: architecture
                     url: url
                   vddk:
                     backingFile: backingFile
@@ -51984,6 +52133,9 @@ components:
                     diskId: diskId
                     url: url
                   upload: "{}"
+                  gcs:
+                    secretRef: secretRef
+                    url: url
                   http:
                     secretExtraHeaders:
                     - secretExtraHeaders
@@ -51997,8 +52149,16 @@ components:
                   pvc:
                     name: name
                     namespace: namespace
+                  snapshot:
+                    name: name
+                    namespace: namespace
                 storage:
                   storageClassName: storageClassName
+                  dataSourceRef:
+                    apiGroup: apiGroup
+                    kind: kind
+                    name: name
+                    namespace: namespace
                   volumeName: volumeName
                   resources:
                     requests:
@@ -52140,6 +52300,8 @@ components:
                     pullMethod: pullMethod
                     secretRef: secretRef
                     certConfigMap: certConfigMap
+                    platform:
+                      architecture: architecture
                     url: url
                   vddk:
                     backingFile: backingFile
@@ -52155,6 +52317,9 @@ components:
                     diskId: diskId
                     url: url
                   upload: "{}"
+                  gcs:
+                    secretRef: secretRef
+                    url: url
                   http:
                     secretExtraHeaders:
                     - secretExtraHeaders
@@ -52168,8 +52333,16 @@ components:
                   pvc:
                     name: name
                     namespace: namespace
+                  snapshot:
+                    name: name
+                    namespace: namespace
                 storage:
                   storageClassName: storageClassName
+                  dataSourceRef:
+                    apiGroup: apiGroup
+                    kind: kind
+                    name: name
+                    namespace: namespace
                   volumeName: volumeName
                   resources:
                     requests:
@@ -52725,6 +52898,13 @@ components:
                 networkName: networkName
             nodeSelector:
               key: nodeSelector
+            resourceClaims:
+            - resourceClaimName: resourceClaimName
+              name: name
+              resourceClaimTemplateName: resourceClaimTemplateName
+            - resourceClaimName: resourceClaimName
+              name: name
+              resourceClaimTemplateName: resourceClaimTemplateName
             hostname: hostname
             tolerations:
             - effect: effect
@@ -52783,6 +52963,8 @@ components:
                 acpi:
                   enabled: true
                 pvspinlock:
+                  enabled: true
+                hypervPassthrough:
                   enabled: true
                 hyperv:
                   vpindex:
@@ -53049,6 +53231,7 @@ components:
                     useSerial: true
                   efi:
                     secureBoot: true
+                    persistent: true
                 uuid: uuid
                 kernelBoot:
                   container:
@@ -53532,6 +53715,8 @@ components:
                 pullMethod: pullMethod
                 secretRef: secretRef
                 certConfigMap: certConfigMap
+                platform:
+                  architecture: architecture
                 url: url
               vddk:
                 backingFile: backingFile
@@ -53547,6 +53732,9 @@ components:
                 diskId: diskId
                 url: url
               upload: "{}"
+              gcs:
+                secretRef: secretRef
+                url: url
               http:
                 secretExtraHeaders:
                 - secretExtraHeaders
@@ -53560,8 +53748,16 @@ components:
               pvc:
                 name: name
                 namespace: namespace
+              snapshot:
+                name: name
+                namespace: namespace
             storage:
               storageClassName: storageClassName
+              dataSourceRef:
+                apiGroup: apiGroup
+                kind: kind
+                name: name
+                namespace: namespace
               volumeName: volumeName
               resources:
                 requests:
@@ -53703,6 +53899,8 @@ components:
                 pullMethod: pullMethod
                 secretRef: secretRef
                 certConfigMap: certConfigMap
+                platform:
+                  architecture: architecture
                 url: url
               vddk:
                 backingFile: backingFile
@@ -53718,6 +53916,9 @@ components:
                 diskId: diskId
                 url: url
               upload: "{}"
+              gcs:
+                secretRef: secretRef
+                url: url
               http:
                 secretExtraHeaders:
                 - secretExtraHeaders
@@ -53731,8 +53932,16 @@ components:
               pvc:
                 name: name
                 namespace: namespace
+              snapshot:
+                name: name
+                namespace: namespace
             storage:
               storageClassName: storageClassName
+              dataSourceRef:
+                apiGroup: apiGroup
+                kind: kind
+                name: name
+                namespace: namespace
               volumeName: volumeName
               resources:
                 requests:
@@ -62458,6 +62667,8 @@ components:
             - ""
             - ""
             updateStrategy:
+              maxSurge: maxSurge
+              maxUnavailable: maxUnavailable
               type: RollingUpdateScaleOut
             additionalTags:
               key: ""
@@ -62523,6 +62734,8 @@ components:
             - ""
             - ""
             updateStrategy:
+              maxSurge: maxSurge
+              maxUnavailable: maxUnavailable
               type: RollingUpdateScaleOut
             additionalTags:
               key: ""
@@ -62632,6 +62845,8 @@ components:
           - ""
           - ""
           updateStrategy:
+            maxSurge: maxSurge
+            maxUnavailable: maxUnavailable
             type: RollingUpdateScaleOut
           additionalTags:
             key: ""
@@ -62697,6 +62912,8 @@ components:
           - ""
           - ""
           updateStrategy:
+            maxSurge: maxSurge
+            maxUnavailable: maxUnavailable
             type: RollingUpdateScaleOut
           additionalTags:
             key: ""
@@ -63169,6 +63386,8 @@ components:
         - ""
         - ""
         updateStrategy:
+          maxSurge: maxSurge
+          maxUnavailable: maxUnavailable
           type: RollingUpdateScaleOut
         additionalTags:
           key: ""
@@ -63752,6 +63971,8 @@ components:
             - labels
             - labels
             updateStrategy:
+              maxSurge: maxSurge
+              maxUnavailable: maxUnavailable
               type: RollingUpdateScaleOut
             additionalTags:
               key: additionalTags
@@ -63835,6 +64056,8 @@ components:
             - labels
             - labels
             updateStrategy:
+              maxSurge: maxSurge
+              maxUnavailable: maxUnavailable
               type: RollingUpdateScaleOut
             additionalTags:
               key: additionalTags
@@ -63999,6 +64222,8 @@ components:
           - labels
           - labels
           updateStrategy:
+            maxSurge: maxSurge
+            maxUnavailable: maxUnavailable
             type: RollingUpdateScaleOut
           additionalTags:
             key: additionalTags
@@ -64082,6 +64307,8 @@ components:
           - labels
           - labels
           updateStrategy:
+            maxSurge: maxSurge
+            maxUnavailable: maxUnavailable
             type: RollingUpdateScaleOut
           additionalTags:
             key: additionalTags
@@ -64388,6 +64615,8 @@ components:
         - labels
         - labels
         updateStrategy:
+          maxSurge: maxSurge
+          maxUnavailable: maxUnavailable
           type: RollingUpdateScaleOut
         additionalTags:
           key: additionalTags
@@ -65425,6 +65654,8 @@ components:
             - labels
             - labels
             updateStrategy:
+              maxSurge: maxSurge
+              maxUnavailable: maxUnavailable
               type: RollingUpdateScaleOut
             additionalTags:
               key: additionalTags
@@ -65467,6 +65698,8 @@ components:
             - labels
             - labels
             updateStrategy:
+              maxSurge: maxSurge
+              maxUnavailable: maxUnavailable
               type: RollingUpdateScaleOut
             additionalTags:
               key: additionalTags
@@ -65568,6 +65801,8 @@ components:
           - labels
           - labels
           updateStrategy:
+            maxSurge: maxSurge
+            maxUnavailable: maxUnavailable
             type: RollingUpdateScaleOut
           additionalTags:
             key: additionalTags
@@ -65610,6 +65845,8 @@ components:
           - labels
           - labels
           updateStrategy:
+            maxSurge: maxSurge
+            maxUnavailable: maxUnavailable
             type: RollingUpdateScaleOut
           additionalTags:
             key: additionalTags
@@ -65952,6 +66189,8 @@ components:
         - labels
         - labels
         updateStrategy:
+          maxSurge: maxSurge
+          maxUnavailable: maxUnavailable
           type: RollingUpdateScaleOut
         additionalTags:
           key: additionalTags
@@ -67807,6 +68046,9 @@ components:
           archType: amd64
         poolConfig:
           isControlPlane: true
+          overrideKubeadmConfiguration: overrideKubeadmConfiguration
+          additionalAnnotations:
+            key: additionalAnnotations
           nodeRepaveInterval: 1
           additionalLabels:
             key: additionalLabels
@@ -67825,6 +68067,8 @@ components:
           - labels
           - labels
           updateStrategy:
+            maxSurge: maxSurge
+            maxUnavailable: maxUnavailable
             type: RollingUpdateScaleOut
           additionalTags:
             key: additionalTags
@@ -69817,6 +70061,8 @@ components:
             - tags
             - tags
             updateStrategy:
+              maxSurge: maxSurge
+              maxUnavailable: maxUnavailable
               type: RollingUpdateScaleOut
             additionalTags:
               key: additionalTags
@@ -69899,6 +70145,8 @@ components:
             - tags
             - tags
             updateStrategy:
+              maxSurge: maxSurge
+              maxUnavailable: maxUnavailable
               type: RollingUpdateScaleOut
             additionalTags:
               key: additionalTags
@@ -70041,6 +70289,8 @@ components:
           - tags
           - tags
           updateStrategy:
+            maxSurge: maxSurge
+            maxUnavailable: maxUnavailable
             type: RollingUpdateScaleOut
           additionalTags:
             key: additionalTags
@@ -70123,6 +70373,8 @@ components:
           - tags
           - tags
           updateStrategy:
+            maxSurge: maxSurge
+            maxUnavailable: maxUnavailable
             type: RollingUpdateScaleOut
           additionalTags:
             key: additionalTags
@@ -70508,6 +70760,8 @@ components:
         - tags
         - tags
         updateStrategy:
+          maxSurge: maxSurge
+          maxUnavailable: maxUnavailable
           type: RollingUpdateScaleOut
         additionalTags:
           key: additionalTags
@@ -71218,6 +71472,13 @@ components:
       type: object
     v1MachinePoolBaseConfig:
       properties:
+        additionalAnnotations:
+          additionalProperties:
+            type: string
+          description: |
+            Custom annotations for CAPI machine objects and nodes.
+            Currently implemented for CloudStack only.
+          type: object
         additionalLabels:
           additionalProperties:
             type: string
@@ -71257,6 +71518,12 @@ components:
             \ infrastructure cluster"
           format: int32
           type: integer
+        overrideKubeadmConfiguration:
+          description: |
+            YAML config for kubeletExtraArgs, preKubeadmCommands, postKubeadmCommands.
+            Overrides pack-level settings. Worker pools only.
+            Currently implemented for CloudStack only.
+          type: string
         size:
           description: "size of the pool, number of machines"
           format: int32
@@ -71282,6 +71549,9 @@ components:
       description: Machine pool configuration for the cluster
       example:
         isControlPlane: true
+        overrideKubeadmConfiguration: overrideKubeadmConfiguration
+        additionalAnnotations:
+          key: additionalAnnotations
         nodeRepaveInterval: 1
         additionalLabels:
           key: additionalLabels
@@ -71300,6 +71570,8 @@ components:
         - labels
         - labels
         updateStrategy:
+          maxSurge: maxSurge
+          maxUnavailable: maxUnavailable
           type: RollingUpdateScaleOut
         additionalTags:
           key: additionalTags
@@ -71309,6 +71581,13 @@ components:
         name: name
         minSize: 6
       properties:
+        additionalAnnotations:
+          additionalProperties:
+            type: string
+          description: |
+            Custom annotations for CAPI machine objects and nodes.
+            Currently implemented for CloudStack only.
+          type: object
         additionalLabels:
           additionalProperties:
             type: string
@@ -71349,6 +71628,12 @@ components:
             \ infrastructure cluster"
           format: int32
           type: integer
+        overrideKubeadmConfiguration:
+          description: |
+            YAML config for kubeletExtraArgs, preKubeadmCommands, postKubeadmCommands.
+            Overrides pack-level settings. Worker pools only.
+            Currently implemented for CloudStack only.
+          type: string
         size:
           description: "Size of the pool, number of nodes/machines"
           format: int32
@@ -74017,6 +74302,8 @@ components:
             - labels
             flavor: flavor
             updateStrategy:
+              maxSurge: maxSurge
+              maxUnavailable: maxUnavailable
               type: RollingUpdateScaleOut
             additionalTags:
               key: additionalTags
@@ -74058,6 +74345,8 @@ components:
             - labels
             flavor: flavor
             updateStrategy:
+              maxSurge: maxSurge
+              maxUnavailable: maxUnavailable
               type: RollingUpdateScaleOut
             additionalTags:
               key: additionalTags
@@ -74163,6 +74452,8 @@ components:
           - labels
           flavor: flavor
           updateStrategy:
+            maxSurge: maxSurge
+            maxUnavailable: maxUnavailable
             type: RollingUpdateScaleOut
           additionalTags:
             key: additionalTags
@@ -74204,6 +74495,8 @@ components:
           - labels
           flavor: flavor
           updateStrategy:
+            maxSurge: maxSurge
+            maxUnavailable: maxUnavailable
             type: RollingUpdateScaleOut
           additionalTags:
             key: additionalTags
@@ -74586,6 +74879,8 @@ components:
         - labels
         flavor: flavor
         updateStrategy:
+          maxSurge: maxSurge
+          maxUnavailable: maxUnavailable
           type: RollingUpdateScaleOut
         additionalTags:
           key: additionalTags
@@ -100050,16 +100345,32 @@ components:
         \ of a MachineDeployment We'll start with default values for the translation,\
         \ can expose more details later Following is details of parameters translated\
         \ from the type ScaleOut => maxSurge=1, maxUnavailable=0 ScaleIn => maxSurge=0,\
-        \ maxUnavailable=1"
+        \ maxUnavailable=1 OverrideScaling => maxSurge and maxUnavailable are user-specified\
+        \ (both required)"
       example:
+        maxSurge: maxSurge
+        maxUnavailable: maxUnavailable
         type: RollingUpdateScaleOut
       properties:
+        maxSurge:
+          description: |
+            Max extra nodes during rolling update. Integer or percentage (e.g., "1" or "20%").
+            Only valid when type=OverrideScaling. Both maxSurge and maxUnavailable are required.
+            Currently implemented for CloudStack only.
+          type: string
+        maxUnavailable:
+          description: |
+            Max unavailable nodes during rolling update. Integer or percentage (e.g., "0" or "10%").
+            Only valid when type=OverrideScaling. Both maxSurge and maxUnavailable are required.
+            Currently implemented for CloudStack only.
+          type: string
         type:
-          description: "update strategy, either ScaleOut or ScaleIn if empty, will\
-            \ default to RollingUpdateScaleOut"
+          description: Update strategy type. Defaults to RollingUpdateScaleOut if
+            empty.
           enum:
           - RollingUpdateScaleOut
           - RollingUpdateScaleIn
+          - OverrideScaling
           type: string
       type: object
     v1UpdateTenantStatus:
@@ -101643,6 +101954,8 @@ components:
             - labels
             - labels
             updateStrategy:
+              maxSurge: maxSurge
+              maxUnavailable: maxUnavailable
               type: RollingUpdateScaleOut
             additionalTags:
               key: additionalTags
@@ -101680,6 +101993,8 @@ components:
             - labels
             - labels
             updateStrategy:
+              maxSurge: maxSurge
+              maxUnavailable: maxUnavailable
               type: RollingUpdateScaleOut
             additionalTags:
               key: additionalTags
@@ -101767,6 +102082,8 @@ components:
           - labels
           - labels
           updateStrategy:
+            maxSurge: maxSurge
+            maxUnavailable: maxUnavailable
             type: RollingUpdateScaleOut
           additionalTags:
             key: additionalTags
@@ -101804,6 +102121,8 @@ components:
           - labels
           - labels
           updateStrategy:
+            maxSurge: maxSurge
+            maxUnavailable: maxUnavailable
             type: RollingUpdateScaleOut
           additionalTags:
             key: additionalTags
@@ -102019,6 +102338,8 @@ components:
         - labels
         - labels
         updateStrategy:
+          maxSurge: maxSurge
+          maxUnavailable: maxUnavailable
           type: RollingUpdateScaleOut
         additionalTags:
           key: additionalTags
@@ -103189,6 +103510,7 @@ components:
           useSerial: true
         efi:
           secureBoot: true
+          persistent: true
       properties:
         bios:
           $ref: "#/components/schemas/v1VmBIOS"
@@ -103630,7 +103952,7 @@ components:
       type: object
     v1VmDataVolumeSource:
       description: "DataVolumeSource represents the source for our Data Volume, this\
-        \ can be HTTP, Imageio, S3, Registry or an existing PVC"
+        \ can be HTTP, Imageio, S3, GCS, Registry, Snapshot or an existing PVC"
       example:
         s3:
           secretRef: secretRef
@@ -103641,6 +103963,8 @@ components:
           pullMethod: pullMethod
           secretRef: secretRef
           certConfigMap: certConfigMap
+          platform:
+            architecture: architecture
           url: url
         vddk:
           backingFile: backingFile
@@ -103656,6 +103980,9 @@ components:
           diskId: diskId
           url: url
         upload: "{}"
+        gcs:
+          secretRef: secretRef
+          url: url
         http:
           secretExtraHeaders:
           - secretExtraHeaders
@@ -103669,11 +103996,16 @@ components:
         pvc:
           name: name
           namespace: namespace
+        snapshot:
+          name: name
+          namespace: namespace
       properties:
         blank:
           description: DataVolumeBlankImage provides the parameters to create a new
             raw blank image for the PVC
           type: object
+        gcs:
+          $ref: "#/components/schemas/v1VmDataVolumeSourceGCS"
         http:
           $ref: "#/components/schemas/v1VmDataVolumeSourceHttp"
         imageio:
@@ -103684,12 +104016,31 @@ components:
           $ref: "#/components/schemas/v1VmDataVolumeSourceRegistry"
         s3:
           $ref: "#/components/schemas/v1VmDataVolumeSourceS3"
+        snapshot:
+          $ref: "#/components/schemas/v1VmDataVolumeSourceSnapshot"
         upload:
           description: DataVolumeSourceUpload provides the parameters to create a
             Data Volume by uploading the source
           type: object
         vddk:
           $ref: "#/components/schemas/v1VmDataVolumeSourceVDDK"
+      type: object
+    v1VmDataVolumeSourceGCS:
+      description: DataVolumeSourceGCS provides the parameters to create a Data Volume
+        from a GCS source
+      example:
+        secretRef: secretRef
+        url: url
+      properties:
+        secretRef:
+          description: SecretRef provides the secret reference needed to access the
+            GCS source
+          type: string
+        url:
+          description: URL is the url of the GCS source
+          type: string
+      required:
+      - url
       type: object
     v1VmDataVolumeSourceHttp:
       description: "DataVolumeSourceHTTP can be either an http or https endpoint,\
@@ -103806,6 +104157,8 @@ components:
         pullMethod: pullMethod
         secretRef: secretRef
         certConfigMap: certConfigMap
+        platform:
+          architecture: architecture
         url: url
       properties:
         certConfigMap:
@@ -103814,6 +104167,8 @@ components:
         imageStream:
           description: ImageStream is the name of image stream for import
           type: string
+        platform:
+          $ref: "#/components/schemas/v1VmPlatformOptions"
         pullMethod:
           description: "PullMethod can be either \"pod\" (default import), or \"node\"\
             \ (node docker cache based import)"
@@ -103848,6 +104203,23 @@ components:
           type: string
       required:
       - url
+      type: object
+    v1VmDataVolumeSourceSnapshot:
+      description: DataVolumeSourceSnapshot provides the parameters to create a Data
+        Volume from an existing VolumeSnapshot
+      example:
+        name: name
+        namespace: namespace
+      properties:
+        name:
+          description: The name of the source VolumeSnapshot
+          type: string
+        namespace:
+          description: The namespace of the source VolumeSnapshot
+          type: string
+      required:
+      - name
+      - namespace
       type: object
     v1VmDataVolumeSourceUpload:
       description: DataVolumeSourceUpload provides the parameters to create a Data
@@ -103909,6 +104281,8 @@ components:
             pullMethod: pullMethod
             secretRef: secretRef
             certConfigMap: certConfigMap
+            platform:
+              architecture: architecture
             url: url
           vddk:
             backingFile: backingFile
@@ -103924,6 +104298,9 @@ components:
             diskId: diskId
             url: url
           upload: "{}"
+          gcs:
+            secretRef: secretRef
+            url: url
           http:
             secretExtraHeaders:
             - secretExtraHeaders
@@ -103937,8 +104314,16 @@ components:
           pvc:
             name: name
             namespace: namespace
+          snapshot:
+            name: name
+            namespace: namespace
         storage:
           storageClassName: storageClassName
+          dataSourceRef:
+            apiGroup: apiGroup
+            kind: kind
+            name: name
+            namespace: namespace
           volumeName: volumeName
           resources:
             requests:
@@ -104112,6 +104497,8 @@ components:
               pullMethod: pullMethod
               secretRef: secretRef
               certConfigMap: certConfigMap
+              platform:
+                architecture: architecture
               url: url
             vddk:
               backingFile: backingFile
@@ -104127,6 +104514,9 @@ components:
               diskId: diskId
               url: url
             upload: "{}"
+            gcs:
+              secretRef: secretRef
+              url: url
             http:
               secretExtraHeaders:
               - secretExtraHeaders
@@ -104140,8 +104530,16 @@ components:
             pvc:
               name: name
               namespace: namespace
+            snapshot:
+              name: name
+              namespace: namespace
           storage:
             storageClassName: storageClassName
+            dataSourceRef:
+              apiGroup: apiGroup
+              kind: kind
+              name: name
+              namespace: namespace
             volumeName: volumeName
             resources:
               requests:
@@ -104610,6 +105008,8 @@ components:
             enabled: true
           pvspinlock:
             enabled: true
+          hypervPassthrough:
+            enabled: true
           hyperv:
             vpindex:
               enabled: true
@@ -104875,6 +105275,7 @@ components:
               useSerial: true
             efi:
               secureBoot: true
+              persistent: true
           uuid: uuid
           kernelBoot:
             container:
@@ -104905,7 +105306,7 @@ components:
           $ref: "#/components/schemas/v1VmDomainSpec_ioThreads"
         ioThreadsPolicy:
           description: "Controls whether or not disks will share IOThreads. Omitting\
-            \ IOThreadsPolicy disables use of IOThreads. One of: shared, auto"
+            \ IOThreadsPolicy disables use of IOThreads. One of: shared, auto, supplementalPool"
           type: string
         launchSecurity:
           $ref: "#/components/schemas/v1VmLaunchSecurity"
@@ -105003,7 +105404,12 @@ components:
       description: "If set, EFI will be used instead of BIOS."
       example:
         secureBoot: true
+        persistent: true
       properties:
+        persistent:
+          description: "If set to true, Persistent will persist the EFI NVRAM across\
+            \ reboots. Defaults to false"
+          type: boolean
         secureBoot:
           description: "If set, SecureBoot will be enabled and the OVMF roms will\
             \ be swapped for SecureBoot-enabled ones. Requires SMM to be enabled.\
@@ -105235,6 +105641,8 @@ components:
           enabled: true
         pvspinlock:
           enabled: true
+        hypervPassthrough:
+          enabled: true
         hyperv:
           vpindex:
             enabled: true
@@ -105275,6 +105683,8 @@ components:
           $ref: "#/components/schemas/v1VmFeatureApiC"
         hyperv:
           $ref: "#/components/schemas/v1VmFeatureHyperv"
+        hypervPassthrough:
+          $ref: "#/components/schemas/v1VmHyperVPassthrough"
         kvm:
           $ref: "#/components/schemas/v1VmFeatureKVm"
         pvspinlock:
@@ -105325,6 +105735,7 @@ components:
             useSerial: true
           efi:
             secureBoot: true
+            persistent: true
         uuid: uuid
         kernelBoot:
           container:
@@ -105547,6 +105958,18 @@ components:
           description: "PageSize specifies the hugepage size, for x86_64 architecture\
             \ valid values are 1Gi and 2Mi."
           type: string
+      type: object
+    v1VmHyperVPassthrough:
+      description: "HyperVPassthrough enables all supported hyperv flags automatically.\
+        \ Bear in mind that if this enabled hyperV features cannot be enabled explicitly.\
+        \ In addition, a Virtual Machine using it will be non-migratable."
+      example:
+        enabled: true
+      properties:
+        enabled:
+          description: Enabled determines if Hyper-V passthrough should be enabled
+            or disabled. Defaults to false.
+          type: boolean
       type: object
     v1VmHypervTimer:
       example:
@@ -106701,6 +107124,16 @@ components:
       required:
       - claimName
       type: object
+    v1VmPlatformOptions:
+      description: PlatformOptions describes the minimum runtime requirements of the
+        image
+      example:
+        architecture: architecture
+      properties:
+        architecture:
+          description: Architecture specifies the image target CPU architecture
+          type: string
+      type: object
     v1VmPodAffinity:
       description: Pod affinity is a group of inter pod affinity scheduling rules.
       example:
@@ -106991,6 +107424,33 @@ components:
         vmNetworkCIDR:
           description: CIDR for vm network. Default 10.0.2.0/24 if not specified.
           type: string
+      type: object
+    v1VmPodResourceClaim:
+      description: PodResourceClaim defines which ResourceClaims must be allocated
+        and reserved before the Pod is allowed to start. The resources will be made
+        available to the domain which consumes them by name.
+      example:
+        resourceClaimName: resourceClaimName
+        name: name
+        resourceClaimTemplateName: resourceClaimTemplateName
+      properties:
+        name:
+          description: Name uniquely identifies this resource claim inside the pod.
+            This must be a DNS_LABEL.
+          type: string
+        resourceClaimName:
+          description: ResourceClaimName is the name of a ResourceClaim object in
+            the same namespace as this pod. Exactly one of ResourceClaimName and ResourceClaimTemplateName
+            must be set.
+          type: string
+        resourceClaimTemplateName:
+          description: "ResourceClaimTemplateName is the name of a ResourceClaimTemplate\
+            \ object in the same namespace as this pod. The template will be used\
+            \ to create a new ResourceClaim, which will be bound to this pod. Exactly\
+            \ one of ResourceClaimName and ResourceClaimTemplateName must be set."
+          type: string
+      required:
+      - name
       type: object
     v1VmPort:
       description: Port represents a port to expose from the virtual machine. Default
@@ -107462,6 +107922,11 @@ components:
       description: StorageSpec defines the Storage type specification
       example:
         storageClassName: storageClassName
+        dataSourceRef:
+          apiGroup: apiGroup
+          kind: kind
+          name: name
+          namespace: namespace
         volumeName: volumeName
         resources:
           requests:
@@ -107499,6 +107964,8 @@ components:
           type: array
         dataSource:
           $ref: "#/components/schemas/v1VmTypedLocalObjectReference"
+        dataSourceRef:
+          $ref: "#/components/schemas/v1VmTypedObjectReference"
         resources:
           $ref: "#/components/schemas/v1VmCoreResourceRequirements"
         selector:
@@ -107702,6 +108169,36 @@ components:
           type: string
         name:
           description: Name is the name of resource being referenced
+          type: string
+      required:
+      - kind
+      - name
+      type: object
+    v1VmTypedObjectReference:
+      description: TypedObjectReference contains enough information to let you locate
+        the typed referenced object. It can be used for objects in the same namespace
+        or cluster-scoped objects.
+      example:
+        apiGroup: apiGroup
+        kind: kind
+        name: name
+        namespace: namespace
+      properties:
+        apiGroup:
+          description: "APIGroup is the group for the resource being referenced. If\
+            \ APIGroup is not specified, the specified Kind must be in the core API\
+            \ group. For any other third-party types, APIGroup is required."
+          type: string
+        kind:
+          description: Kind is the type of resource being referenced
+          type: string
+        name:
+          description: Name is the name of resource being referenced
+          type: string
+        namespace:
+          description: Namespace is the namespace of resource being referenced. This
+            field is required when the resource is namespaced and optional when the
+            resource is cluster-scoped.
           type: string
       required:
       - kind
@@ -108058,6 +108555,13 @@ components:
             networkName: networkName
         nodeSelector:
           key: nodeSelector
+        resourceClaims:
+        - resourceClaimName: resourceClaimName
+          name: name
+          resourceClaimTemplateName: resourceClaimTemplateName
+        - resourceClaimName: resourceClaimName
+          name: name
+          resourceClaimTemplateName: resourceClaimTemplateName
         hostname: hostname
         tolerations:
         - effect: effect
@@ -108116,6 +108620,8 @@ components:
             acpi:
               enabled: true
             pvspinlock:
+              enabled: true
+            hypervPassthrough:
               enabled: true
             hyperv:
               vpindex:
@@ -108382,6 +108888,7 @@ components:
                 useSerial: true
               efi:
                 secureBoot: true
+                persistent: true
             uuid: uuid
             kernelBoot:
               container:
@@ -108843,6 +109350,19 @@ components:
           type: string
         readinessProbe:
           $ref: "#/components/schemas/v1VmProbe"
+        resourceClaims:
+          description: "ResourceClaims define which ResourceClaims must be allocated\
+            \ and reserved before the VMI, hence virt-launcher pod is allowed to start.\
+            \ The resources will be made available to the domain which consumes them\
+            \ by name. This is an alpha field and requires enabling the DynamicResourceAllocation\
+            \ feature gate in kubernetes. This field should only be configured if\
+            \ one of the feature-gates GPUsWithDRA or HostDevicesWithDRA is enabled."
+          items:
+            $ref: "#/components/schemas/v1VmPodResourceClaim"
+          type: array
+          x-kubernetes-list-type: map
+          x-kubernetes-list-map-keys:
+          - name
         schedulerName:
           description: "If specified, the VMI will be dispatched by specified scheduler.\
             \ If not specified, the VMI will be dispatched by default scheduler."
@@ -109205,6 +109725,13 @@ components:
               networkName: networkName
           nodeSelector:
             key: nodeSelector
+          resourceClaims:
+          - resourceClaimName: resourceClaimName
+            name: name
+            resourceClaimTemplateName: resourceClaimTemplateName
+          - resourceClaimName: resourceClaimName
+            name: name
+            resourceClaimTemplateName: resourceClaimTemplateName
           hostname: hostname
           tolerations:
           - effect: effect
@@ -109263,6 +109790,8 @@ components:
               acpi:
                 enabled: true
               pvspinlock:
+                enabled: true
+              hypervPassthrough:
                 enabled: true
               hyperv:
                 vpindex:
@@ -109529,6 +110058,7 @@ components:
                   useSerial: true
                 efi:
                   secureBoot: true
+                  persistent: true
               uuid: uuid
               kernelBoot:
                 container:
@@ -110570,6 +111100,8 @@ components:
             - labels
             - labels
             updateStrategy:
+              maxSurge: maxSurge
+              maxUnavailable: maxUnavailable
               type: RollingUpdateScaleOut
             additionalTags:
               key: additionalTags
@@ -110704,6 +111236,8 @@ components:
             - labels
             - labels
             updateStrategy:
+              maxSurge: maxSurge
+              maxUnavailable: maxUnavailable
               type: RollingUpdateScaleOut
             additionalTags:
               key: additionalTags
@@ -110958,6 +111492,8 @@ components:
           - labels
           - labels
           updateStrategy:
+            maxSurge: maxSurge
+            maxUnavailable: maxUnavailable
             type: RollingUpdateScaleOut
           additionalTags:
             key: additionalTags
@@ -111092,6 +111628,8 @@ components:
           - labels
           - labels
           updateStrategy:
+            maxSurge: maxSurge
+            maxUnavailable: maxUnavailable
             type: RollingUpdateScaleOut
           additionalTags:
             key: additionalTags
@@ -111941,6 +112479,8 @@ components:
         - labels
         - labels
         updateStrategy:
+          maxSurge: maxSurge
+          maxUnavailable: maxUnavailable
           type: RollingUpdateScaleOut
         additionalTags:
           key: additionalTags
