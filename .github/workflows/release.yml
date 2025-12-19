@@ -1,0 +1,141 @@
+name: Release New Version
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "The version to release"
+        required: false
+        default: ""
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  SVU_VERSION: "3.3.3"
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  build-with-latest-hapi-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Import Vault Credentials
+        id: import-secrets
+        uses: spectrocloud/palette-sdk-typescript/.github/actions/vault-credentials@main
+
+      - name: Checkout
+        uses: actions/checkout@v6.0.1
+        with:
+          token: ${{ steps.import-secrets.outputs.VAULT_GITHUB_TOKEN }}
+
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v6.1.0
+        with:
+          node-version: "22"
+          cache: "npm"
+          registry-url: "https://npm.pkg.github.com"
+
+      - name: Setup Copywrite
+        uses: hashicorp/setup-copywrite@v1.1.3
+
+      - name: Checkout HAPI Repository
+        uses: actions/checkout@v6.0.1
+        with:
+          repository: spectrocloud/hapi
+          path: api/hapi
+          fetch-depth: "0"
+          token: ${{ steps.import-secrets.outputs.VAULT_GITHUB_TOKEN }}
+
+      - name: Install dependencies
+        run: make install-dependencies
+
+      - name: Install Go Swagger
+        run: |
+          dir=$(mktemp -d) 
+          download_url=$(curl -s https://api.github.com/repos/go-swagger/go-swagger/releases/latest | \
+            jq -r '.assets[] | select(.name | contains("'"$(uname | tr '[:upper:]' '[:lower:]')"'_amd64")) | .browser_download_url')
+          curl -o $dir/swagger -L'#' "$download_url"
+          sudo install $dir/swagger /usr/local/bin
+
+      - name: Ensure Reviewable
+        run: make check-diff
+
+      - name: Generate
+        run: make generate
+
+      - name: Test
+        env:
+          # Expires 2026-12-31. Tenant is https://palette-ai-rsch.console.spectrocloud.com/
+          PALETTE_API_KEY: ${{ secrets.PALETTE_API_KEY }}
+        run: make test
+
+      - name: Get svu
+        run: |
+          URL="https://github.com/caarlos0/svu/releases/download/v${SVU_VERSION}/svu_${SVU_VERSION}_linux_amd64.tar.gz"
+          wget --quiet $URL --output-document svu.tar.gz
+          tar -xzf svu.tar.gz
+          chmod +x svu
+          sudo mv svu /usr/local/bin/
+          svu --version
+
+      - id: tag
+        run: |
+          INPUT_VERSION="${{ github.event.inputs.version }}"
+
+          if [ -n "$INPUT_VERSION" ]; then
+            echo "Using provided version: $INPUT_VERSION"
+            VERSION="$INPUT_VERSION"
+            PREV_VERSION=$(svu current --tag.mode all)
+            echo "SAME_VERSION=false" >> $GITHUB_OUTPUT
+
+            # Check if the tag already exists before creating it
+            if git rev-parse "$VERSION" >/dev/null 2>&1; then
+              echo "Tag $VERSION already exists, skipping tag creation."
+            else
+              git tag "$VERSION"
+              git push --tags
+            fi
+          else
+            VERSION=$(svu next --tag.mode all)
+            PREV_VERSION=$(svu current --tag.mode all)
+
+            if [ "$VERSION" = "$PREV_VERSION" ]; then
+              echo "no new version detected"
+              SAME_VERSION=true
+              echo "SAME_VERSION=true" >> $GITHUB_OUTPUT
+            else
+              echo "new version detected"
+              SAME_VERSION=false
+              echo "SAME_VERSION=false" >> $GITHUB_OUTPUT
+
+              # Check if the tag already exists before creating it
+              if git rev-parse "v$VERSION" >/dev/null 2>&1; then
+                echo "Tag v$VERSION already exists, skipping tag creation."
+              else
+                git tag "$VERSION"
+                git push --tags
+              fi
+            fi
+          fi
+
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          echo "PREV_VERSION=$PREV_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Set package version
+        if: steps.tag.outputs.SAME_VERSION != 'true'
+        run: npm version ${{ steps.tag.outputs.VERSION }} --no-git-tag-version
+
+      - name: Publish to npm
+        if: steps.tag.outputs.SAME_VERSION != 'true'
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ steps.import-secrets.outputs.VAULT_GITHUB_TOKEN }}
+
+      - name: Commit reviewable diff
+        if: steps.tag.outputs.SAME_VERSION != 'true'
+        uses: stefanzweifel/git-auto-commit-action@04702edda442b2e678b25b537cec683a1493fcb9 # v7
+        with:
+          commit_message: "chore: release ${{ steps.tag.outputs.VERSION }}"
