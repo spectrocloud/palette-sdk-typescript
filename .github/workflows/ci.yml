@@ -57,6 +57,14 @@ jobs:
       - name: Install dependencies
         run: make install-dependencies
 
+      - name: Install Go Swagger
+        run: |
+          dir=$(mktemp -d) 
+          download_url=$(curl -s https://api.github.com/repos/go-swagger/go-swagger/releases/latest | \
+            jq -r '.assets[] | select(.name | contains("'"$(uname | tr '[:upper:]' '[:lower:]')"'_amd64")) | .browser_download_url')
+          curl -o $dir/swagger -L'#' "$download_url"
+          sudo install $dir/swagger /usr/local/bin
+
       - name: Ensure Reviewable
         run: make check-diff
 
