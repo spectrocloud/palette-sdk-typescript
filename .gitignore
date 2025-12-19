@@ -29,6 +29,9 @@ yarn-error.log*
 .env.test.local
 .env.production.local
 
+# Credentials
+.netrc
+
 # OS generated files
 .DS_Store
 .DS_Store?
@@ -38,3 +41,4 @@ yarn-error.log*
 ehthumbs.db
 Thumbs.db
 .openapi-generator/
+tmp/

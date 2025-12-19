@@ -5651,13 +5651,6 @@
     "v1CloudStackMachineConfig": {
       "description": "CloudStack-specific machine configuration",
       "properties": {
-        "additionalAnnotations": {
-          "additionalProperties": {
-            "type": "string"
-          },
-          "description": "Custom annotations for CAPI machine objects and nodes",
-          "type": "object"
-        },
         "instanceConfig": {
           "$ref": "#/definitions/v1InstanceConfig",
           "description": "Instance Configuration"
@@ -5745,13 +5738,6 @@
     },
     "v1CloudStackMachinePoolCloudConfigEntity": {
       "properties": {
-        "additionalAnnotations": {
-          "additionalProperties": {
-            "type": "string"
-          },
-          "description": "Custom annotations for CAPI machine objects and nodes",
-          "type": "object"
-        },
         "instanceConfig": {
           "$ref": "#/definitions/v1InstanceConfig",
           "description": "Instance Configuration"
@@ -18188,6 +18174,13 @@
     },
     "v1MachinePoolBaseConfig": {
       "properties": {
+        "additionalAnnotations": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "Custom annotations for CAPI machine objects and nodes.\nCurrently implemented for CloudStack only.\n",
+          "type": "object"
+        },
         "additionalLabels": {
           "additionalProperties": {
             "type": "string"
@@ -18234,6 +18227,10 @@
           "format": "int32",
           "type": "integer"
         },
+        "overrideKubeadmConfiguration": {
+          "description": "YAML config for kubeletExtraArgs, preKubeadmCommands, postKubeadmCommands.\nOverrides pack-level settings. Worker pools only.\nCurrently implemented for CloudStack only.\n",
+          "type": "string"
+        },
         "size": {
           "description": "size of the pool, number of machines",
           "format": "int32",
@@ -18265,6 +18262,13 @@
     "v1MachinePoolConfigEntity": {
       "description": "Machine pool configuration for the cluster",
       "properties": {
+        "additionalAnnotations": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "Custom annotations for CAPI machine objects and nodes.\nCurrently implemented for CloudStack only.\n",
+          "type": "object"
+        },
         "additionalLabels": {
           "additionalProperties": {
             "type": "string"
@@ -18311,6 +18315,10 @@
           "description": "Minimum number of seconds a node should be Ready, before the next node is selected for repave. Applicable only for workerpools in infrastructure cluster",
           "format": "int32",
           "type": "integer"
+        },
+        "overrideKubeadmConfiguration": {
+          "description": "YAML config for kubeletExtraArgs, preKubeadmCommands, postKubeadmCommands.\nOverrides pack-level settings. Worker pools only.\nCurrently implemented for CloudStack only.\n",
+          "type": "string"
         },
         "size": {
           "description": "Size of the pool, number of nodes/machines",
@@ -34057,13 +34065,22 @@
       "uniqueItems": true
     },
     "v1UpdateStrategy": {
-      "description": "UpdatesStrategy will be used to translate to RollingUpdateStrategy of a MachineDeployment We'll start with default values for the translation, can expose more details later Following is details of parameters translated from the type ScaleOut => maxSurge=1, maxUnavailable=0 ScaleIn => maxSurge=0, maxUnavailable=1",
+      "description": "UpdatesStrategy will be used to translate to RollingUpdateStrategy of a MachineDeployment We'll start with default values for the translation, can expose more details later Following is details of parameters translated from the type ScaleOut => maxSurge=1, maxUnavailable=0 ScaleIn => maxSurge=0, maxUnavailable=1 OverrideScaling => maxSurge and maxUnavailable are user-specified (both required)",
       "properties": {
+        "maxSurge": {
+          "description": "Max extra nodes during rolling update. Integer or percentage (e.g., \"1\" or \"20%\").\nOnly valid when type=OverrideScaling. Both maxSurge and maxUnavailable are required.\nCurrently implemented for CloudStack only.\n",
+          "type": "string"
+        },
+        "maxUnavailable": {
+          "description": "Max unavailable nodes during rolling update. Integer or percentage (e.g., \"0\" or \"10%\").\nOnly valid when type=OverrideScaling. Both maxSurge and maxUnavailable are required.\nCurrently implemented for CloudStack only.\n",
+          "type": "string"
+        },
         "type": {
-          "description": "update strategy, either ScaleOut or ScaleIn if empty, will default to RollingUpdateScaleOut",
+          "description": "Update strategy type. Defaults to RollingUpdateScaleOut if empty.",
           "enum": [
             "RollingUpdateScaleOut",
-            "RollingUpdateScaleIn"
+            "RollingUpdateScaleIn",
+            "OverrideScaling"
           ],
           "type": "string"
         }
@@ -36265,10 +36282,13 @@
       "type": "object"
     },
     "v1VmDataVolumeSource": {
-      "description": "DataVolumeSource represents the source for our Data Volume, this can be HTTP, Imageio, S3, Registry or an existing PVC",
+      "description": "DataVolumeSource represents the source for our Data Volume, this can be HTTP, Imageio, S3, GCS, Registry, Snapshot or an existing PVC",
       "properties": {
         "blank": {
           "$ref": "#/definitions/v1VmDataVolumeBlankImage"
+        },
+        "gcs": {
+          "$ref": "#/definitions/v1VmDataVolumeSourceGCS"
         },
         "http": {
           "$ref": "#/definitions/v1VmDataVolumeSourceHttp"
@@ -36285,6 +36305,9 @@
         "s3": {
           "$ref": "#/definitions/v1VmDataVolumeSourceS3"
         },
+        "snapshot": {
+          "$ref": "#/definitions/v1VmDataVolumeSourceSnapshot"
+        },
         "upload": {
           "$ref": "#/definitions/v1VmDataVolumeSourceUpload"
         },
@@ -36292,6 +36315,23 @@
           "$ref": "#/definitions/v1VmDataVolumeSourceVDDK"
         }
       },
+      "type": "object"
+    },
+    "v1VmDataVolumeSourceGCS": {
+      "description": "DataVolumeSourceGCS provides the parameters to create a Data Volume from a GCS source",
+      "properties": {
+        "secretRef": {
+          "description": "SecretRef provides the secret reference needed to access the GCS source",
+          "type": "string"
+        },
+        "url": {
+          "description": "URL is the url of the GCS source",
+          "type": "string"
+        }
+      },
+      "required": [
+        "url"
+      ],
       "type": "object"
     },
     "v1VmDataVolumeSourceHttp": {
@@ -36406,6 +36446,9 @@
           "description": "ImageStream is the name of image stream for import",
           "type": "string"
         },
+        "platform": {
+          "$ref": "#/definitions/v1VmPlatformOptions"
+        },
         "pullMethod": {
           "description": "PullMethod can be either \"pod\" (default import), or \"node\" (node docker cache based import)",
           "type": "string"
@@ -36439,6 +36482,24 @@
       },
       "required": [
         "url"
+      ],
+      "type": "object"
+    },
+    "v1VmDataVolumeSourceSnapshot": {
+      "description": "DataVolumeSourceSnapshot provides the parameters to create a Data Volume from an existing VolumeSnapshot",
+      "properties": {
+        "name": {
+          "description": "The name of the source VolumeSnapshot",
+          "type": "string"
+        },
+        "namespace": {
+          "description": "The namespace of the source VolumeSnapshot",
+          "type": "string"
+        }
+      },
+      "required": [
+        "namespace",
+        "name"
       ],
       "type": "object"
     },
@@ -36754,7 +36815,7 @@
           "type": "object"
         },
         "ioThreadsPolicy": {
-          "description": "Controls whether or not disks will share IOThreads. Omitting IOThreadsPolicy disables use of IOThreads. One of: shared, auto",
+          "description": "Controls whether or not disks will share IOThreads. Omitting IOThreadsPolicy disables use of IOThreads. One of: shared, auto, supplementalPool",
           "type": "string"
         },
         "launchSecurity": {
@@ -36827,6 +36888,10 @@
     "v1VmEFI": {
       "description": "If set, EFI will be used instead of BIOS.",
       "properties": {
+        "persistent": {
+          "description": "If set to true, Persistent will persist the EFI NVRAM across reboots. Defaults to false",
+          "type": "boolean"
+        },
         "secureBoot": {
           "description": "If set, SecureBoot will be enabled and the OVMF roms will be swapped for SecureBoot-enabled ones. Requires SMM to be enabled. Defaults to true",
           "type": "boolean"
@@ -36996,6 +37061,9 @@
         },
         "hyperv": {
           "$ref": "#/definitions/v1VmFeatureHyperv"
+        },
+        "hypervPassthrough": {
+          "$ref": "#/definitions/v1VmHyperVPassthrough"
         },
         "kvm": {
           "$ref": "#/definitions/v1VmFeatureKVm"
@@ -37213,6 +37281,16 @@
         "pageSize": {
           "description": "PageSize specifies the hugepage size, for x86_64 architecture valid values are 1Gi and 2Mi.",
           "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "v1VmHyperVPassthrough": {
+      "description": "HyperVPassthrough enables all supported hyperv flags automatically. Bear in mind that if this enabled hyperV features cannot be enabled explicitly. In addition, a Virtual Machine using it will be non-migratable.",
+      "properties": {
+        "enabled": {
+          "description": "Enabled determines if Hyper-V passthrough should be enabled or disabled. Defaults to false.",
+          "type": "boolean"
         }
       },
       "type": "object"
@@ -37935,6 +38013,16 @@
       ],
       "type": "object"
     },
+    "v1VmPlatformOptions": {
+      "description": "PlatformOptions describes the minimum runtime requirements of the image",
+      "properties": {
+        "architecture": {
+          "description": "Architecture specifies the image target CPU architecture",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
     "v1VmPodAffinity": {
       "description": "Pod affinity is a group of inter pod affinity scheduling rules.",
       "properties": {
@@ -38033,6 +38121,27 @@
           "type": "string"
         }
       },
+      "type": "object"
+    },
+    "v1VmPodResourceClaim": {
+      "description": "PodResourceClaim defines which ResourceClaims must be allocated and reserved before the Pod is allowed to start. The resources will be made available to the domain which consumes them by name.",
+      "properties": {
+        "name": {
+          "description": "Name uniquely identifies this resource claim inside the pod. This must be a DNS_LABEL.",
+          "type": "string"
+        },
+        "resourceClaimName": {
+          "description": "ResourceClaimName is the name of a ResourceClaim object in the same namespace as this pod. Exactly one of ResourceClaimName and ResourceClaimTemplateName must be set.",
+          "type": "string"
+        },
+        "resourceClaimTemplateName": {
+          "description": "ResourceClaimTemplateName is the name of a ResourceClaimTemplate object in the same namespace as this pod. The template will be used to create a new ResourceClaim, which will be bound to this pod. Exactly one of ResourceClaimName and ResourceClaimTemplateName must be set.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name"
+      ],
       "type": "object"
     },
     "v1VmPort": {
@@ -38370,6 +38479,9 @@
         "dataSource": {
           "$ref": "#/definitions/v1VmTypedLocalObjectReference"
         },
+        "dataSourceRef": {
+          "$ref": "#/definitions/v1VmTypedObjectReference"
+        },
         "resources": {
           "$ref": "#/definitions/v1VmCoreResourceRequirements"
         },
@@ -38531,6 +38643,32 @@
       ],
       "type": "object"
     },
+    "v1VmTypedObjectReference": {
+      "description": "TypedObjectReference contains enough information to let you locate the typed referenced object. It can be used for objects in the same namespace or cluster-scoped objects.",
+      "properties": {
+        "apiGroup": {
+          "description": "APIGroup is the group for the resource being referenced. If APIGroup is not specified, the specified Kind must be in the core API group. For any other third-party types, APIGroup is required.",
+          "type": "string"
+        },
+        "kind": {
+          "description": "Kind is the type of resource being referenced",
+          "type": "string"
+        },
+        "name": {
+          "description": "Name is the name of resource being referenced",
+          "type": "string"
+        },
+        "namespace": {
+          "description": "Namespace is the namespace of resource being referenced. This field is required when the resource is namespaced and optional when the resource is cluster-scoped.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "name"
+      ],
+      "type": "object"
+    },
     "v1VmUserPasswordAccessCredential": {
       "description": "UserPasswordAccessCredential represents a source and propagation method for injecting user passwords into a vm guest Only one of its members may be specified.",
       "properties": {
@@ -38672,6 +38810,17 @@
         },
         "readinessProbe": {
           "$ref": "#/definitions/v1VmProbe"
+        },
+        "resourceClaims": {
+          "description": "ResourceClaims define which ResourceClaims must be allocated and reserved before the VMI, hence virt-launcher pod is allowed to start. The resources will be made available to the domain which consumes them by name. This is an alpha field and requires enabling the DynamicResourceAllocation feature gate in kubernetes. This field should only be configured if one of the feature-gates GPUsWithDRA or HostDevicesWithDRA is enabled.",
+          "items": {
+            "$ref": "#/definitions/v1VmPodResourceClaim"
+          },
+          "type": "array",
+          "x-kubernetes-list-map-keys": [
+            "name"
+          ],
+          "x-kubernetes-list-type": "map"
         },
         "schedulerName": {
           "description": "If specified, the VMI will be dispatched by specified scheduler. If not specified, the VMI will be dispatched by default scheduler.",

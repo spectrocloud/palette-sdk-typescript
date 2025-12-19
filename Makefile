@@ -80,6 +80,7 @@ license:
 
 clean: ## Clean generated files except httpClient folder
 	rm -rf palette/
+	rm rf api/hapi
 	rm -f api/palette-apis-spec-tagged.json
 	rm -rf dist/
 	@$(OK) "Clean complete"
