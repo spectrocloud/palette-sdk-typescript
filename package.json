@@ -1,9 +1,13 @@
 {
-  "name": "palette-sdk-typescript",
+  "name": "@spectrocloud/palette-sdk-typescript",
   "version": "0.0.5",
   "description": "TypeScript SDK for Spectro Cloud Palette API",
   "main": "dist/palette/index.js",
   "types": "dist/palette/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/spectrocloud/palette-sdk-typescript"
+  },
   "exports": {
     ".": {
       "import": "./dist/palette/index.js",
