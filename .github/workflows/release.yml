@@ -112,8 +112,8 @@ jobs:
               echo "SAME_VERSION=false" >> $GITHUB_OUTPUT
 
               # Check if the tag already exists before creating it
-              if git rev-parse "v$VERSION" >/dev/null 2>&1; then
-                echo "Tag v$VERSION already exists, skipping tag creation."
+              if git rev-parse "$VERSION" >/dev/null 2>&1; then
+                echo "Tag $VERSION already exists, skipping tag creation."
               else
                 git tag "$VERSION"
                 git push --tags
@@ -121,12 +121,16 @@ jobs:
             fi
           fi
 
+          # Strip v prefix for npm version
+          NPM_VERSION="${VERSION#v}"
+
           echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          echo "NPM_VERSION=$NPM_VERSION" >> $GITHUB_OUTPUT
           echo "PREV_VERSION=$PREV_VERSION" >> $GITHUB_OUTPUT
 
       - name: Set package version
         if: steps.tag.outputs.SAME_VERSION != 'true'
-        run: npm version ${{ steps.tag.outputs.VERSION }} --no-git-tag-version
+        run: npm version ${{ steps.tag.outputs.NPM_VERSION }} --no-git-tag-version
 
       - name: Publish to npm
         if: steps.tag.outputs.SAME_VERSION != 'true'
