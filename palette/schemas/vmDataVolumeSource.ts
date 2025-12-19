@@ -10,24 +10,28 @@
  * OpenAPI spec version: v1
  */
 import type { VmDataVolumeBlankImage } from './vmDataVolumeBlankImage';
+import type { VmDataVolumeSourceGCS } from './vmDataVolumeSourceGCS';
 import type { VmDataVolumeSourceHttp } from './vmDataVolumeSourceHttp';
 import type { VmDataVolumeSourceImageIO } from './vmDataVolumeSourceImageIO';
 import type { VmDataVolumeSourcePVC } from './vmDataVolumeSourcePVC';
 import type { VmDataVolumeSourceRegistry } from './vmDataVolumeSourceRegistry';
 import type { VmDataVolumeSourceS3 } from './vmDataVolumeSourceS3';
+import type { VmDataVolumeSourceSnapshot } from './vmDataVolumeSourceSnapshot';
 import type { VmDataVolumeSourceUpload } from './vmDataVolumeSourceUpload';
 import type { VmDataVolumeSourceVDDK } from './vmDataVolumeSourceVDDK';
 
 /**
- * DataVolumeSource represents the source for our Data Volume, this can be HTTP, Imageio, S3, Registry or an existing PVC
+ * DataVolumeSource represents the source for our Data Volume, this can be HTTP, Imageio, S3, GCS, Registry, Snapshot or an existing PVC
  */
 export type VmDataVolumeSource = {
   blank?: VmDataVolumeBlankImage;
+  gcs?: VmDataVolumeSourceGCS;
   http?: VmDataVolumeSourceHttp;
   imageio?: VmDataVolumeSourceImageIO;
   pvc?: VmDataVolumeSourcePVC;
   registry?: VmDataVolumeSourceRegistry;
   s3?: VmDataVolumeSourceS3;
+  snapshot?: VmDataVolumeSourceSnapshot;
   upload?: VmDataVolumeSourceUpload;
   vddk?: VmDataVolumeSourceVDDK;
 };

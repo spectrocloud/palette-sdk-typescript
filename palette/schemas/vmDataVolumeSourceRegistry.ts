@@ -9,6 +9,7 @@
  * Palette APIs - 4.8
  * OpenAPI spec version: v1
  */
+import type { VmPlatformOptions } from './vmPlatformOptions';
 
 /**
  * DataVolumeSourceRegistry provides the parameters to create a Data Volume from an registry source
@@ -18,6 +19,7 @@ export type VmDataVolumeSourceRegistry = {
   certConfigMap?: string;
   /** ImageStream is the name of image stream for import */
   imageStream?: string;
+  platform?: VmPlatformOptions;
   /** PullMethod can be either "pod" (default import), or "node" (node docker cache based import) */
   pullMethod?: string;
   /** SecretRef provides the secret reference needed to access the Registry source */

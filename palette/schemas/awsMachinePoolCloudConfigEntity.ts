@@ -20,8 +20,12 @@ export type AwsMachinePoolCloudConfigEntity = {
   azs?: string[];
   /** EC2 instance capacity type */
   capacityType?: AwsMachinePoolCloudConfigEntityCapacityType;
+  /** ARN of AWS Host Resource Group for node placement on dedicated hosts */
+  hostResourceGroupArn?: string;
   /** instance type */
   instanceType: string;
+  /** List of AWS License Configuration ARNs (required when hostResourceGroupArn is specified) */
+  licenseConfigurationArns?: string[];
   /**
    * rootDeviceSize in GBs
    * @minimum 1

@@ -12,9 +12,19 @@
 import type { UpdateStrategyType } from './updateStrategyType';
 
 /**
- * UpdatesStrategy will be used to translate to RollingUpdateStrategy of a MachineDeployment We'll start with default values for the translation, can expose more details later Following is details of parameters translated from the type ScaleOut => maxSurge=1, maxUnavailable=0 ScaleIn => maxSurge=0, maxUnavailable=1
+ * UpdatesStrategy will be used to translate to RollingUpdateStrategy of a MachineDeployment We'll start with default values for the translation, can expose more details later Following is details of parameters translated from the type ScaleOut => maxSurge=1, maxUnavailable=0 ScaleIn => maxSurge=0, maxUnavailable=1 OverrideScaling => maxSurge and maxUnavailable are user-specified (both required)
  */
 export type UpdateStrategy = {
-  /** update strategy, either ScaleOut or ScaleIn if empty, will default to RollingUpdateScaleOut */
+  /** Max extra nodes during rolling update. Integer or percentage (e.g., "1" or "20%").
+Only valid when type=OverrideScaling. Both maxSurge and maxUnavailable are required.
+Currently implemented for CloudStack only.
+ */
+  maxSurge?: string;
+  /** Max unavailable nodes during rolling update. Integer or percentage (e.g., "0" or "10%").
+Only valid when type=OverrideScaling. Both maxSurge and maxUnavailable are required.
+Currently implemented for CloudStack only.
+ */
+  maxUnavailable?: string;
+  /** Update strategy type. Defaults to RollingUpdateScaleOut if empty. */
   type?: UpdateStrategyType;
 };

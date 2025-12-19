@@ -30,7 +30,7 @@ export type VmDomainSpec = {
   firmware?: VmFirmware;
   /** IOThreads specifies the IOThreads options. */
   ioThreads?: VmDomainSpecIoThreads;
-  /** Controls whether or not disks will share IOThreads. Omitting IOThreadsPolicy disables use of IOThreads. One of: shared, auto */
+  /** Controls whether or not disks will share IOThreads. Omitting IOThreadsPolicy disables use of IOThreads. One of: shared, auto, supplementalPool */
   ioThreadsPolicy?: string;
   launchSecurity?: VmLaunchSecurity;
   machine?: VmMachine;

@@ -10,6 +10,7 @@
  * OpenAPI spec version: v1
  */
 import type { VmTypedLocalObjectReference } from './vmTypedLocalObjectReference';
+import type { VmTypedObjectReference } from './vmTypedObjectReference';
 import type { VmCoreResourceRequirements } from './vmCoreResourceRequirements';
 import type { VmLabelSelector } from './vmLabelSelector';
 
@@ -20,6 +21,7 @@ export type VmStorageSpec = {
   /** AccessModes contains the desired access modes the volume should have. More info: https://kubernetes.io/docs/concepts/storage/persistent-volumes#access-modes-1 */
   accessModes?: string[];
   dataSource?: VmTypedLocalObjectReference;
+  dataSourceRef?: VmTypedObjectReference;
   resources?: VmCoreResourceRequirements;
   selector?: VmLabelSelector;
   /** Name of the StorageClass required by the claim. More info: https://kubernetes.io/docs/concepts/storage/persistent-volumes#class-1 */
