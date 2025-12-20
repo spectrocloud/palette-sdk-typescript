@@ -31,6 +31,8 @@ export type AwsMachinePoolConfig = {
   azs?: string[];
   /** EC2 instance capacity type */
   capacityType?: AwsMachinePoolConfigCapacityType;
+  /** ARN of AWS Host Resource Group for node placement on dedicated hosts */
+  hostResourceGroupArn?: string;
   instanceConfig?: InstanceConfig;
   /** instance type */
   instanceType?: string;
@@ -38,6 +40,8 @@ export type AwsMachinePoolConfig = {
   isControlPlane: boolean;
   /** labels for this pool, example: control-plane/worker, gpu, windows */
   labels?: string[];
+  /** List of AWS License Configuration ARNs (required when hostResourceGroupArn is specified) */
+  licenseConfigurationArns?: string[];
   machinePoolProperties?: MachinePoolProperties;
   /** max size of the pool, for scaling */
   maxSize?: number;

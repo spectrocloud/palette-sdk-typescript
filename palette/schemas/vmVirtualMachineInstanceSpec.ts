@@ -16,6 +16,7 @@ import type { VmDomainSpec } from './vmDomainSpec';
 import type { VmProbe } from './vmProbe';
 import type { VmNetwork } from './vmNetwork';
 import type { VmVirtualMachineInstanceSpecNodeSelector } from './vmVirtualMachineInstanceSpecNodeSelector';
+import type { VmPodResourceClaim } from './vmPodResourceClaim';
 import type { VmToleration } from './vmToleration';
 import type { VmTopologySpreadConstraint } from './vmTopologySpreadConstraint';
 import type { VmVolume } from './vmVolume';
@@ -45,6 +46,8 @@ export type VmVirtualMachineInstanceSpec = {
   /** If specified, indicates the pod's priority. If not specified, the pod priority will be default or zero if there is no default. */
   priorityClassName?: string;
   readinessProbe?: VmProbe;
+  /** ResourceClaims define which ResourceClaims must be allocated and reserved before the VMI, hence virt-launcher pod is allowed to start. The resources will be made available to the domain which consumes them by name. This is an alpha field and requires enabling the DynamicResourceAllocation feature gate in kubernetes. This field should only be configured if one of the feature-gates GPUsWithDRA or HostDevicesWithDRA is enabled. */
+  resourceClaims?: VmPodResourceClaim[];
   /** If specified, the VMI will be dispatched by specified scheduler. If not specified, the VMI will be dispatched by default scheduler. */
   schedulerName?: string;
   /** StartStrategy can be set to "Paused" if Virtual Machine should be started in paused state. */

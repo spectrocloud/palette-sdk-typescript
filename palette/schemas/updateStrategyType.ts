@@ -11,7 +11,7 @@
  */
 
 /**
- * update strategy, either ScaleOut or ScaleIn if empty, will default to RollingUpdateScaleOut
+ * Update strategy type. Defaults to RollingUpdateScaleOut if empty.
  */
 export type UpdateStrategyType = typeof UpdateStrategyType[keyof typeof UpdateStrategyType];
 
@@ -20,4 +20,5 @@ export type UpdateStrategyType = typeof UpdateStrategyType[keyof typeof UpdateSt
 export const UpdateStrategyType = {
   RollingUpdateScaleOut: 'RollingUpdateScaleOut',
   RollingUpdateScaleIn: 'RollingUpdateScaleIn',
+  OverrideScaling: 'OverrideScaling',
 } as const;

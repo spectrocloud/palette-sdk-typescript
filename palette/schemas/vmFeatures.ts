@@ -12,12 +12,14 @@
 import type { VmFeatureState } from './vmFeatureState';
 import type { VmFeatureApiC } from './vmFeatureApiC';
 import type { VmFeatureHyperv } from './vmFeatureHyperv';
+import type { VmHyperVPassthrough } from './vmHyperVPassthrough';
 import type { VmFeatureKVm } from './vmFeatureKVm';
 
 export type VmFeatures = {
   acpi?: VmFeatureState;
   apic?: VmFeatureApiC;
   hyperv?: VmFeatureHyperv;
+  hypervPassthrough?: VmHyperVPassthrough;
   kvm?: VmFeatureKVm;
   pvspinlock?: VmFeatureState;
   smm?: VmFeatureState;

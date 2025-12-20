@@ -9,7 +9,6 @@
  * Palette APIs - 4.8
  * OpenAPI spec version: v1
  */
-import type { CloudStackMachineConfigAdditionalAnnotations } from './cloudStackMachineConfigAdditionalAnnotations';
 import type { InstanceConfig } from './instanceConfig';
 import type { CloudStackNetworkConfig } from './cloudStackNetworkConfig';
 import type { CloudStackResource } from './cloudStackResource';
@@ -18,8 +17,6 @@ import type { CloudStackResource } from './cloudStackResource';
  * CloudStack-specific machine configuration
  */
 export type CloudStackMachineConfig = {
-  /** Custom annotations for CAPI machine objects and nodes */
-  additionalAnnotations?: CloudStackMachineConfigAdditionalAnnotations;
   instanceConfig?: InstanceConfig;
   /** Network configuration */
   networks?: CloudStackNetworkConfig[];

@@ -2979,9 +2979,20 @@
           ],
           "type": "string"
         },
+        "hostResourceGroupArn": {
+          "description": "ARN of AWS Host Resource Group for node placement on dedicated hosts",
+          "type": "string"
+        },
         "instanceType": {
           "description": "instance type",
           "type": "string"
+        },
+        "licenseConfigurationArns": {
+          "description": "List of AWS License Configuration ARNs (required when hostResourceGroupArn is specified)",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
         },
         "rootDeviceSize": {
           "description": "rootDeviceSize in GBs",
@@ -3045,6 +3056,10 @@
           ],
           "type": "string"
         },
+        "hostResourceGroupArn": {
+          "description": "ARN of AWS Host Resource Group for node placement on dedicated hosts",
+          "type": "string"
+        },
         "instanceConfig": {
           "$ref": "#/definitions/v1InstanceConfig"
         },
@@ -3059,6 +3074,13 @@
         },
         "labels": {
           "description": "labels for this pool, example: control-plane/worker, gpu, windows",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "licenseConfigurationArns": {
+          "description": "List of AWS License Configuration ARNs (required when hostResourceGroupArn is specified)",
           "items": {
             "type": "string"
           },

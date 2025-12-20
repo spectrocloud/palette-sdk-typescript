@@ -1,9 +1,9 @@
-name: Release New Version
+name: Release New SDK Version
 on:
   workflow_dispatch:
     inputs:
       version:
-        description: "The version to release"
+        description: "The version to release. Do not include the v prefix."
         required: false
         default: ""
 
@@ -12,11 +12,12 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  SVU_VERSION: "3.3.3"
+  SVU_VERSION: "3.3.0"
 
 permissions:
   contents: write
   id-token: write
+  packages: write
 
 jobs:
   build-with-latest-hapi-release:
@@ -37,6 +38,13 @@ jobs:
           node-version: "22"
           cache: "npm"
           registry-url: "https://npm.pkg.github.com"
+
+      - name: Prevent Post-Install Scripts
+        run: |
+          npm config set ignore-scripts true
+
+      - name: Install Dependencies
+        run: npm install -g socket && npx socket npm ci
 
       - name: Setup Copywrite
         uses: hashicorp/setup-copywrite@v1.1.3
@@ -74,17 +82,19 @@ jobs:
 
       - name: Get svu
         run: |
-          URL="https://github.com/caarlos0/svu/releases/download/v${SVU_VERSION}/svu_${SVU_VERSION}_linux_amd64.tar.gz"
-          wget --quiet $URL --output-document svu.tar.gz
-          tar -xzf svu.tar.gz
-          chmod +x svu
-          sudo mv svu /usr/local/bin/
+          tmpdir=$(mktemp -d)
+          URL="https://github.com/caarlos0/svu/releases/download/v${{ env.SVU_VERSION }}/svu_${{ env.SVU_VERSION }}_linux_amd64.tar.gz"
+          wget --quiet "$URL" --output-document "$tmpdir/svu.tar.gz"
+          tar -xzf "$tmpdir/svu.tar.gz" -C "$tmpdir"
+          sudo install "$tmpdir/svu" /usr/local/bin/
+          rm -rf "$tmpdir"
           svu --version
 
       - id: tag
+        name: Determine Version to Release
+        env:
+          INPUT_VERSION: ${{ github.event.inputs.version }}
         run: |
-          INPUT_VERSION="${{ github.event.inputs.version }}"
-
           if [ -n "$INPUT_VERSION" ]; then
             echo "Using provided version: $INPUT_VERSION"
             VERSION="$INPUT_VERSION"
@@ -130,13 +140,28 @@ jobs:
 
       - name: Set package version
         if: steps.tag.outputs.SAME_VERSION != 'true'
-        run: npm version ${{ steps.tag.outputs.NPM_VERSION }} --no-git-tag-version
+        env:
+          NPM_VERSION: ${{ steps.tag.outputs.NPM_VERSION }}
+        run: |
+          CURRENT_VERSION=$(node -p "require('./package.json').version")
+          if [ "$CURRENT_VERSION" = "$NPM_VERSION" ]; then
+            echo "package.json already at version $NPM_VERSION, skipping"
+          else
+            npm version "$NPM_VERSION" --no-git-tag-version
+          fi
 
       - name: Publish to npm
         if: steps.tag.outputs.SAME_VERSION != 'true'
         run: npm publish
         env:
-          NODE_AUTH_TOKEN: ${{ steps.import-secrets.outputs.VAULT_GITHUB_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create GitHub Release
+        if: steps.tag.outputs.SAME_VERSION != 'true'
+        env:
+          GH_TOKEN: ${{ steps.import-secrets.outputs.VAULT_GITHUB_TOKEN }}
+          VERSION: ${{ steps.tag.outputs.VERSION }}
+        run: gh release create "$VERSION" --generate-notes
 
       - name: Commit reviewable diff
         if: steps.tag.outputs.SAME_VERSION != 'true'
