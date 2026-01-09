@@ -9,14 +9,19 @@
  * Palette APIs - 4.8
  * OpenAPI spec version: v1
  */
-import type { InstanceConfig } from './instanceConfig';
-import type { CloudStackNetworkConfig } from './cloudStackNetworkConfig';
+import type { CloudStackMachinePoolCloudConfigEntityDetails } from './cloudStackMachinePoolCloudConfigEntityDetails';
 import type { CloudStackResource } from './cloudStackResource';
+import type { CloudStackNetworkConfig } from './cloudStackNetworkConfig';
 
 export type CloudStackMachinePoolCloudConfigEntity = {
-  instanceConfig?: InstanceConfig;
+  /** Affinity group for VM placement (optional) */
+  affinityGroupIds?: string[];
+  /** Additional details for instance creation */
+  details?: CloudStackMachinePoolCloudConfigEntityDetails;
+  diskOffering?: CloudStackResource;
   /** Network configuration */
   networks?: CloudStackNetworkConfig[];
   offering: CloudStackResource;
-  template?: CloudStackResource;
+  /** Root disk size in GB (optional) */
+  rootDiskSizeGB?: number;
 };

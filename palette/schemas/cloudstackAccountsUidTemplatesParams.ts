@@ -19,8 +19,4 @@ zone?: string;
  * Project ID for which CloudStack templates are requested
  */
 projectId?: string;
-/**
- * Template IDs for which CloudStack templates are requested
- */
-templateIds?: string[];
 };

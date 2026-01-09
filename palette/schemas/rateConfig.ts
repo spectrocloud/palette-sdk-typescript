@@ -9,17 +9,17 @@
  * Palette APIs - 4.8
  * OpenAPI spec version: v1
  */
-import type { PrivateCloudRateConfig } from './privateCloudRateConfig';
 import type { PublicCloudRateConfig } from './publicCloudRateConfig';
+import type { PrivateCloudRateConfig } from './privateCloudRateConfig';
 import type { CustomCloudRateConfig } from './customCloudRateConfig';
 
 /**
  * Rate config
  */
 export type RateConfig = {
-  'apache-cloudstack'?: PrivateCloudRateConfig;
   aws?: PublicCloudRateConfig;
   azure?: PublicCloudRateConfig;
+  cloudstack?: PrivateCloudRateConfig;
   custom?: CustomCloudRateConfig[];
   edge?: PrivateCloudRateConfig;
   edgeNative?: PrivateCloudRateConfig;

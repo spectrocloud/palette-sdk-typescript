@@ -9,7 +9,6 @@
  * Palette APIs - 4.8
  * OpenAPI spec version: v1
  */
-import type { AzureMachinePoolConfigAdditionalAnnotations } from './azureMachinePoolConfigAdditionalAnnotations';
 import type { AzureMachinePoolConfigAdditionalLabels } from './azureMachinePoolConfigAdditionalLabels';
 import type { AzureMachinePoolConfigAdditionalTags } from './azureMachinePoolConfigAdditionalTags';
 import type { InstanceConfig } from './instanceConfig';
@@ -21,9 +20,6 @@ import type { Taint } from './taint';
 import type { UpdateStrategy } from './updateStrategy';
 
 export type AzureMachinePoolConfig = {
-  /** Custom annotations for CAPI machine objects and nodes.
- */
-  additionalAnnotations?: AzureMachinePoolConfigAdditionalAnnotations;
   /** additionalLabels */
   additionalLabels?: AzureMachinePoolConfigAdditionalLabels;
   /** AdditionalTags is an optional set of tags to add to resources managed by the provider, in addition to the ones added by default. For eg., tags for EKS nodeGroup or EKS NodegroupIAMRole */
@@ -48,10 +44,6 @@ export type AzureMachinePoolConfig = {
   nodeRepaveInterval?: number;
   osDisk?: AzureOSDisk;
   osType?: OsType;
-  /** YAML config for kubeletExtraArgs, preKubeadmCommands, postKubeadmCommands.
-Overrides pack-level settings. Worker pools only.
- */
-  overrideKubeadmConfiguration?: string;
   /** size of the pool, number of machines */
   size?: number;
   spotVMOptions?: SpotVMOptions;

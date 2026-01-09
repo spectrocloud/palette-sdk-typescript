@@ -20,5 +20,4 @@ export type EksMachineCloudConfigEntityCapacityType = typeof EksMachineCloudConf
 export const EksMachineCloudConfigEntityCapacityType = {
   'on-demand': 'on-demand',
   spot: 'spot',
-  'host-resource-group': 'host-resource-group',
 } as const;

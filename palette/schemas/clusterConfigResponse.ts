@@ -13,6 +13,4 @@ import type { HostClusterConfigResponse } from './hostClusterConfigResponse';
 
 export type ClusterConfigResponse = {
   hostClusterConfig?: HostClusterConfigResponse;
-  /** Timezone of a cluster in IANA standard format. It is mandatory field if cluster is deployed through template, else it is optional */
-  timezone?: string;
 };

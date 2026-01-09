@@ -27,9 +27,4 @@ gpuGtEq?: number;
  * Uid for the specific AWS cloud account
  */
 cloudAccountUid?: string;
-/**
- * Optional HRG ARN to filter instance types by HRG supported families
- * @pattern ^arn:aws[a-z\-]*:resource-groups:[a-z0-9\-]+:[0-9]{12}:group/[a-zA-Z0-9\-_]+$
- */
-hrgArn?: string;
 };

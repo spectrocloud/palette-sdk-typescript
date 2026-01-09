@@ -27,7 +27,6 @@ export const CloudType = {
   eks: 'eks',
   aks: 'aks',
   edge: 'edge',
-  'apache-cloudstack': 'apache-cloudstack',
   'edge-native': 'edge-native',
   generic: 'generic',
   gke: 'gke',

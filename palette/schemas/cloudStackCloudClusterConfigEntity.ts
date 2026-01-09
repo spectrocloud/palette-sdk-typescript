@@ -9,11 +9,11 @@
  * Palette APIs - 4.8
  * OpenAPI spec version: v1
  */
-import type { CloudStackClusterConfigUpdateEntity } from './cloudStackClusterConfigUpdateEntity';
+import type { CloudStackClusterConfig } from './cloudStackClusterConfig';
 
 /**
  * CloudStack cloud cluster config entity
  */
 export type CloudStackCloudClusterConfigEntity = {
-  clusterConfig?: CloudStackClusterConfigUpdateEntity;
+  clusterConfig?: CloudStackClusterConfig;
 };

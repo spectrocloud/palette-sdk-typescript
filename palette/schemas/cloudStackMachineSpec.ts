@@ -11,7 +11,6 @@
  */
 import type { CloudStackMachineDiskOffering } from './cloudStackMachineDiskOffering';
 import type { GenericInstanceType } from './genericInstanceType';
-import type { CloudStackNic } from './cloudStackNic';
 import type { CloudStackMachineOffering } from './cloudStackMachineOffering';
 import type { CloudStackMachineTemplate } from './cloudStackMachineTemplate';
 
@@ -23,7 +22,6 @@ export type CloudStackMachineSpec = {
   /** Failure domain name (zone) for the machine */
   failureDomainName?: string;
   instanceType?: GenericInstanceType;
-  nics?: CloudStackNic[];
   offering?: CloudStackMachineOffering;
   /** Provider ID for the machine */
   providerID?: string;

@@ -17,6 +17,4 @@ export type CustomClusterConfigEntity = {
   location?: ClusterLocation;
   machineManagementConfig?: MachineManagementConfig;
   resources?: ClusterResourcesEntity;
-  /** The timezone field is mandatory if cluster is deployed through template, else it is optional */
-  timezone?: string;
 };

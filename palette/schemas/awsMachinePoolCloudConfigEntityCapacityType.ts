@@ -20,5 +20,4 @@ export type AwsMachinePoolCloudConfigEntityCapacityType = typeof AwsMachinePoolC
 export const AwsMachinePoolCloudConfigEntityCapacityType = {
   'on-demand': 'on-demand',
   spot: 'spot',
-  'host-resource-group': 'host-resource-group',
 } as const;

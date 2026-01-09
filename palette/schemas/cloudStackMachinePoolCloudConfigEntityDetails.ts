@@ -11,7 +11,6 @@
  */
 
 /**
- * Custom annotations for CAPI machine objects and nodes.
-
+ * Additional details for instance creation
  */
-export type AwsMachinePoolConfigAdditionalAnnotations = { [key: string]: unknown };
+export type CloudStackMachinePoolCloudConfigEntityDetails = { [key: string]: unknown };

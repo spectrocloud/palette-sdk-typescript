@@ -14,18 +14,8 @@
  * CloudStack Vpc
  */
 export type CloudStackVpc = {
-  /** Vpc Cidr */
-  cidr?: string;
-  /** Domain Id associated with Vpc */
-  domainId?: string;
   /** Vpc id */
   id?: string;
   /** Vpc name */
   name?: string;
-  /** Vpc offering Id */
-  offeringId?: string;
-  /** Project Id associated with Vpc */
-  projectId?: string;
-  /** Zone Id associated with Vpc */
-  zoneId?: string;
 };

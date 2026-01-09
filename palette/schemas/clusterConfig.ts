@@ -30,8 +30,6 @@ export type ClusterConfig = {
   lifecycleConfig?: LifecycleConfig;
   machineHealthConfig?: MachineHealthCheckConfig;
   machineManagementConfig?: MachineManagementConfig;
-  /** Timezone of a cluster in IANA standard format. It is mandatory field if cluster is deployed through template, else it is optional */
-  timezone?: string;
   /** UpdateWorkerPoolsInParallel is used to decide if the update of workerpools happen in parallel. When this flag is false, the workerpools are updated sequentially. */
   updateWorkerPoolsInParallel?: boolean;
 };

@@ -17,5 +17,4 @@ export type EcrRegistrySpecProviderType = typeof EcrRegistrySpecProviderType[key
 export const EcrRegistrySpecProviderType = {
   helm: 'helm',
   pack: 'pack',
-  zarf: 'zarf',
 } as const;

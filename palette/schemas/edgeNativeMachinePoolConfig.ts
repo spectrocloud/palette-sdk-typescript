@@ -9,7 +9,6 @@
  * Palette APIs - 4.8
  * OpenAPI spec version: v1
  */
-import type { EdgeNativeMachinePoolConfigAdditionalAnnotations } from './edgeNativeMachinePoolConfigAdditionalAnnotations';
 import type { EdgeNativeMachinePoolConfigAdditionalLabels } from './edgeNativeMachinePoolConfigAdditionalLabels';
 import type { EdgeNativeMachinePoolConfigAdditionalTags } from './edgeNativeMachinePoolConfigAdditionalTags';
 import type { EdgeNativeHost } from './edgeNativeHost';
@@ -18,9 +17,6 @@ import type { Taint } from './taint';
 import type { UpdateStrategy } from './updateStrategy';
 
 export type EdgeNativeMachinePoolConfig = {
-  /** Custom annotations for CAPI machine objects and nodes.
- */
-  additionalAnnotations?: EdgeNativeMachinePoolConfigAdditionalAnnotations;
   /** AdditionalLabels */
   additionalLabels?: EdgeNativeMachinePoolConfigAdditionalLabels;
   /** AdditionalTags is an optional set of tags to add to resources managed by the provider, in addition to the ones added by default. For eg., tags for EKS nodeGroup or EKS NodegroupIAMRole */
@@ -40,10 +36,6 @@ export type EdgeNativeMachinePoolConfig = {
   nodeRepaveInterval?: number;
   /** the os type for the pool, must be supported by the provider */
   osType?: string;
-  /** YAML config for kubeletExtraArgs, preKubeadmCommands, postKubeadmCommands.
-Overrides pack-level settings. Worker pools only.
- */
-  overrideKubeadmConfiguration?: string;
   /** size of the pool, number of machines */
   size?: number;
   /** control plane or worker taints */

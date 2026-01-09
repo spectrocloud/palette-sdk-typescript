@@ -18,5 +18,5 @@ export const OverlordsPairingCodeCloudType = {
   vsphere: 'vsphere',
   openstack: 'openstack',
   maas: 'maas',
-  'apache-cloudstack': 'apache-cloudstack',
+  cloudstack: 'cloudstack',
 } as const;

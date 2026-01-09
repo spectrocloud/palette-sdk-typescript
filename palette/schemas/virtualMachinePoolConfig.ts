@@ -9,7 +9,6 @@
  * Palette APIs - 4.8
  * OpenAPI spec version: v1
  */
-import type { VirtualMachinePoolConfigAdditionalAnnotations } from './virtualMachinePoolConfigAdditionalAnnotations';
 import type { VirtualMachinePoolConfigAdditionalLabels } from './virtualMachinePoolConfigAdditionalLabels';
 import type { VirtualMachinePoolConfigAdditionalTags } from './virtualMachinePoolConfigAdditionalTags';
 import type { VirtualInstanceType } from './virtualInstanceType';
@@ -18,9 +17,6 @@ import type { Taint } from './taint';
 import type { UpdateStrategy } from './updateStrategy';
 
 export type VirtualMachinePoolConfig = {
-  /** Custom annotations for CAPI machine objects and nodes.
- */
-  additionalAnnotations?: VirtualMachinePoolConfigAdditionalAnnotations;
   /** additionalLabels */
   additionalLabels?: VirtualMachinePoolConfigAdditionalLabels;
   /** AdditionalTags is an optional set of tags to add to resources managed by the provider, in addition to the ones added by default. For eg., tags for EKS nodeGroup or EKS NodegroupIAMRole */
@@ -37,10 +33,6 @@ export type VirtualMachinePoolConfig = {
   /** min size of the pool, for scaling */
   minSize?: number;
   name?: string;
-  /** YAML config for kubeletExtraArgs, preKubeadmCommands, postKubeadmCommands.
-Overrides pack-level settings. Worker pools only.
- */
-  overrideKubeadmConfiguration?: string;
   resourcePool?: string;
   /** size of the pool, number of machines */
   size?: number;

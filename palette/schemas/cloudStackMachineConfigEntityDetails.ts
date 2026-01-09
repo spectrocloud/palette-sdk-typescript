@@ -11,7 +11,6 @@
  */
 
 /**
- * Custom annotations for CAPI machine objects and nodes.
-
+ * Additional details for instance creation
  */
-export type OpenStackMachinePoolConfigAdditionalAnnotations = { [key: string]: unknown };
+export type CloudStackMachineConfigEntityDetails = { [key: string]: unknown };

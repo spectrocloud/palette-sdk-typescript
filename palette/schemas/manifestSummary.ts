@@ -16,8 +16,6 @@
 export type ManifestSummary = {
   /** Manifest content in yaml */
   content?: string;
-  /** Manifest digest */
-  digest?: string;
   /** Manifest name */
   name?: string;
   /** Manifest uid */

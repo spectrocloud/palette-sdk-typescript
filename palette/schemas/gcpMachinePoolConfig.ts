@@ -9,7 +9,6 @@
  * Palette APIs - 4.8
  * OpenAPI spec version: v1
  */
-import type { GcpMachinePoolConfigAdditionalAnnotations } from './gcpMachinePoolConfigAdditionalAnnotations';
 import type { GcpMachinePoolConfigAdditionalLabels } from './gcpMachinePoolConfigAdditionalLabels';
 import type { GcpMachinePoolConfigAdditionalTags } from './gcpMachinePoolConfigAdditionalTags';
 import type { InstanceConfig } from './instanceConfig';
@@ -19,9 +18,6 @@ import type { Taint } from './taint';
 import type { UpdateStrategy } from './updateStrategy';
 
 export type GcpMachinePoolConfig = {
-  /** Custom annotations for CAPI machine objects and nodes.
- */
-  additionalAnnotations?: GcpMachinePoolConfigAdditionalAnnotations;
   /** additionalLabels */
   additionalLabels?: GcpMachinePoolConfigAdditionalLabels;
   /** AdditionalTags is an optional set of tags to add to resources managed by the provider, in addition to the ones added by default. For eg., tags for EKS nodeGroup or EKS NodegroupIAMRole */
@@ -41,10 +37,6 @@ export type GcpMachinePoolConfig = {
   name?: string;
   /** Minimum number of seconds a node should be Ready, before the next node is selected for repave. Applicable only for workerpools in infrastructure cluster */
   nodeRepaveInterval?: number;
-  /** YAML config for kubeletExtraArgs, preKubeadmCommands, postKubeadmCommands.
-Overrides pack-level settings. Worker pools only.
- */
-  overrideKubeadmConfiguration?: string;
   /** Size of root volume in GB. Default is 30GB */
   rootDeviceSize?: number;
   /** size of the pool, number of machines */

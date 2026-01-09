@@ -9,7 +9,6 @@
  * Palette APIs - 4.8
  * OpenAPI spec version: v1
  */
-import type { AwsMachinePoolConfigAdditionalAnnotations } from './awsMachinePoolConfigAdditionalAnnotations';
 import type { AwsMachinePoolConfigAdditionalLabels } from './awsMachinePoolConfigAdditionalLabels';
 import type { AwsResourceReference } from './awsResourceReference';
 import type { AwsMachinePoolConfigAdditionalTags } from './awsMachinePoolConfigAdditionalTags';
@@ -22,9 +21,6 @@ import type { Taint } from './taint';
 import type { UpdateStrategy } from './updateStrategy';
 
 export type AwsMachinePoolConfig = {
-  /** Custom annotations for CAPI machine objects and nodes.
- */
-  additionalAnnotations?: AwsMachinePoolConfigAdditionalAnnotations;
   /** additionalLabels */
   additionalLabels?: AwsMachinePoolConfigAdditionalLabels;
   /** Additional Security groups */
@@ -35,8 +31,6 @@ export type AwsMachinePoolConfig = {
   azs?: string[];
   /** EC2 instance capacity type */
   capacityType?: AwsMachinePoolConfigCapacityType;
-  /** ARN of AWS Host Resource Group for node placement on dedicated hosts */
-  hostResourceGroupArn?: string;
   instanceConfig?: InstanceConfig;
   /** instance type */
   instanceType?: string;
@@ -44,8 +38,6 @@ export type AwsMachinePoolConfig = {
   isControlPlane: boolean;
   /** labels for this pool, example: control-plane/worker, gpu, windows */
   labels?: string[];
-  /** List of AWS License Configuration ARNs (required when hostResourceGroupArn is specified) */
-  licenseConfigurationArns?: string[];
   machinePoolProperties?: MachinePoolProperties;
   /** max size of the pool, for scaling */
   maxSize?: number;
@@ -54,10 +46,6 @@ export type AwsMachinePoolConfig = {
   name?: string;
   /** Minimum number of seconds a node should be Ready, before the next node is selected for repave. Applicable only for workerpools in infrastructure cluster */
   nodeRepaveInterval?: number;
-  /** YAML config for kubeletExtraArgs, preKubeadmCommands, postKubeadmCommands.
-Overrides pack-level settings. Worker pools only.
- */
-  overrideKubeadmConfiguration?: string;
   /** rootDeviceSize in GBs */
   rootDeviceSize?: number;
   /** size of the pool, number of machines */

@@ -9,7 +9,6 @@
  * Palette APIs - 4.8
  * OpenAPI spec version: v1
  */
-import type { OpenStackMachinePoolConfigAdditionalAnnotations } from './openStackMachinePoolConfigAdditionalAnnotations';
 import type { OpenStackMachinePoolConfigAdditionalLabels } from './openStackMachinePoolConfigAdditionalLabels';
 import type { OpenStackMachinePoolConfigAdditionalTags } from './openStackMachinePoolConfigAdditionalTags';
 import type { OpenstackFlavorConfig } from './openstackFlavorConfig';
@@ -19,9 +18,6 @@ import type { Taint } from './taint';
 import type { UpdateStrategy } from './updateStrategy';
 
 export type OpenStackMachinePoolConfig = {
-  /** Custom annotations for CAPI machine objects and nodes.
- */
-  additionalAnnotations?: OpenStackMachinePoolConfigAdditionalAnnotations;
   /** additionalLabels */
   additionalLabels?: OpenStackMachinePoolConfigAdditionalLabels;
   /** AdditionalTags is an optional set of tags to add to resources managed by the provider, in addition to the ones added by default. For eg., tags for EKS nodeGroup or EKS NodegroupIAMRole */
@@ -46,10 +42,6 @@ export type OpenStackMachinePoolConfig = {
   name?: string;
   /** Minimum number of seconds a node should be Ready, before the next node is selected for repave. Applicable only for workerpools in infrastructure cluster */
   nodeRepaveInterval?: number;
-  /** YAML config for kubeletExtraArgs, preKubeadmCommands, postKubeadmCommands.
-Overrides pack-level settings. Worker pools only.
- */
-  overrideKubeadmConfiguration?: string;
   /** size of the pool, number of machines */
   size?: number;
   subnet?: OpenStackResource;
