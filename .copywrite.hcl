@@ -5,10 +5,7 @@ schema_version = 1
 project {
   license          = "Apache-2.0"
   copyright_holder = "Spectro Cloud"
-
-  # (OPTIONAL) Represents the year that the project initially began
-  # Default: <the year the repo was first created>
-  copyright_year = 2026
+  copyright_year = "2026"
 
   # (OPTIONAL) A list of globs that should not have copyright or license headers .
   # Supports doublestar glob patterns for more flexibility in defining which
