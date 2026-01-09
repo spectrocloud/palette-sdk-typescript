@@ -8,7 +8,7 @@ project {
 
   # (OPTIONAL) Represents the year that the project initially began
   # Default: <the year the repo was first created>
-  copyright_year = 2025
+  copyright_year = 2026
 
   # (OPTIONAL) A list of globs that should not have copyright or license headers .
   # Supports doublestar glob patterns for more flexibility in defining which
@@ -17,5 +17,6 @@ project {
   header_ignore = [
     "vendor/**",
     "**autogen**",
+    "node_modules/**"
   ]
 }
