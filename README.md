@@ -16,7 +16,7 @@ A TypeScript SDK for the Spectro Cloud Palette API. This package provides a comp
 ## Installation
 
 ```bash
-npm install @spectrocloud/palette-sdk-typescript@
+npm install @spectrocloud/palette-sdk-typescript
 ```
 
 > [!IMPORTANT]
