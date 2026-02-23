@@ -15,9 +15,20 @@ A TypeScript SDK for the Spectro Cloud Palette API. This package provides a comp
 
 ## Installation
 
+To install the SDK, you can use npm or yarn. First, make sure you have a GitHub personal access token with the `read:packages` scope. Then, configure npm use your token by adding the following to your local `.npmrc` file.
+
+```json
+@spectrocloud:registry=https://npm.pkg.github.com
+//npm.pkg.github.com/:_authToken=<your-token>
+```
+
+Next, install the SDK.
+
 ```bash
 npm install @spectrocloud/palette-sdk-typescript
 ```
+
+### Requirements
 
 > [!IMPORTANT]
 > This package is published as TypeScript source code. You'll need TypeScript in your project to use it. If you're using JavaScript, you may need to configure your build tools to handle TypeScript files.
