@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Copyright (c) Spectro Cloud
+# Copyright Spectro Cloud 2026, 0
 # SPDX-License-Identifier: Apache-2.0
 
 """

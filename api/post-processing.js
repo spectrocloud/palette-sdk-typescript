@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Copyright (c) Spectro Cloud
+ * Copyright Spectro Cloud 2026, 0
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -255,7 +255,7 @@ function createMainIndexFile() {
   }
 
   const content = `/**
- * Copyright (c) Spectro Cloud
+ * Copyright Spectro Cloud 2026, 0
  * SPDX-License-Identifier: Apache-2.0
  */
 
