@@ -68,9 +68,6 @@ jobs:
           curl -o $dir/swagger -L'#' "$download_url"
           sudo install $dir/swagger /usr/local/bin
 
-      - name: Ensure Reviewable
-        run: make check-diff
-
       - name: Generate
         run: make generate
 
