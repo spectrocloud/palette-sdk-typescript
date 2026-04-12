@@ -50,7 +50,11 @@ check-diff: reviewable ## Execute branch is clean
 	@$(OK) branch is clean
 
 reviewable: pre-commit-install ## Ensure code is ready for review
-	git submodule update --remote
+	@if [ -d "api/hapi" ]; then \
+		cd api/hapi && git pull origin main; \
+	else \
+		git clone https://github.com/spectrocloud/hapi.git api/hapi; \
+	fi
 
 pre-commit-install: pre-commit ## Install pre-commit hooks
 	@if [ "$(GITHUB_ACTIONS)" != "true" ]; then \
