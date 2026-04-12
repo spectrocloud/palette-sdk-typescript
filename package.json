@@ -1,6 +1,6 @@
 {
   "name": "@spectrocloud/palette-sdk-typescript",
-  "version": "4.8.0",
+  "version": "4.8.33",
   "description": "TypeScript SDK for Spectro Cloud Palette API",
   "main": "dist/palette/index.js",
   "types": "dist/palette/index.d.ts",
@@ -47,15 +47,15 @@
   "devDependencies": {
     "@dotenvx/dotenvx": "^1.51.4",
     "@eslint/js": "^9.30.1",
-    "@openapitools/openapi-generator-cli": "^2.27.0",
+    "@openapitools/openapi-generator-cli": "^2.31.1",
     "@typescript-eslint/eslint-plugin": "^8.35.1",
-    "@typescript-eslint/parser": "^8.52.0",
+    "@typescript-eslint/parser": "^8.56.0",
     "eslint": "^9.30.1",
     "globals": "^16.3.0",
     "openapitools": "github:openapitools/openapi-generator-cli",
-    "orval": "^7.20.0",
-    "prettier": "3.7.4",
-    "typescript-eslint": "^8.35.1"
+    "orval": "^7.21.0",
+    "prettier": "3.8.1",
+    "typescript-eslint": "^8.56.0"
   },
   "dependencies": {
     "typescript": "^5.9.3"
