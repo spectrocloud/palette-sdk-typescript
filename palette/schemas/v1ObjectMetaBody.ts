@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Spectro Cloud
+ * Copyright Spectro Cloud 2026
  * SPDX-License-Identifier: Apache-2.0
  */
 
