@@ -44,13 +44,10 @@ test: ## Run integration tests
 
 ##@ Static Analysis Targets
 
-check-diff: reviewable ## Execute branch is clean
+check-diff: pre-commit-install ## Execute branch is clean
 	git --no-pager diff
-	git diff --quiet || ($(ERR) please run 'make reviewable' to include all changes && false)
+	git diff --quiet || ($(ERR) please run 'make pre-commit-install' to include all changes && false)
 	@$(OK) branch is clean
-
-reviewable: pre-commit-install ## Ensure code is ready for review
-	git submodule update --remote
 
 pre-commit-install: pre-commit ## Install pre-commit hooks
 	@if [ "$(GITHUB_ACTIONS)" != "true" ]; then \
