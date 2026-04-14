@@ -33,12 +33,12 @@ jobs:
         uses: spectrocloud/palette-sdk-typescript/.github/actions/vault-credentials@main
 
       - name: Checkout
-        uses: actions/checkout@v6.0.1
+        uses: actions/checkout@v6.0.2
         with:
           token: ${{ steps.import-secrets.outputs.VAULT_GITHUB_TOKEN }}
 
       - name: Setup Node.js environment
-        uses: actions/setup-node@v6.1.0
+        uses: actions/setup-node@v6.3.0
         with:
           node-version: "22"
           cache: "npm"
@@ -55,7 +55,7 @@ jobs:
         uses: hashicorp/setup-copywrite@v1.1.3
 
       - name: Checkout HAPI Repository
-        uses: actions/checkout@v6.0.1
+        uses: actions/checkout@v6.0.2
         with:
           repository: spectrocloud/hapi
           path: api/hapi
@@ -65,13 +65,22 @@ jobs:
       - name: Install dependencies
         run: sfw npm ci
 
+      # esbuild's postinstall is skipped when ignore-scripts is true; Orval needs the native binary.
+      # Invoking install.js directly runs only esbuild's installer (not other packages' scripts).
+      - name: Install esbuild platform binary
+        run: node node_modules/esbuild/install.js
+
       - name: Install Go Swagger
         run: |
           dir=$(mktemp -d) 
-          download_url=$(curl -s https://api.github.com/repos/go-swagger/go-swagger/releases/latest | \
-            jq -r '.assets[] | select(.name | contains("'"$(uname | tr '[:upper:]' '[:lower:]')"'_amd64")) | .browser_download_url')
-          curl -o $dir/swagger -L'#' "$download_url"
-          sudo install $dir/swagger /usr/local/bin
+          download_url=$(\
+            curl -s https://api.github.com/repos/go-swagger/go-swagger/releases/latest | \
+            jq -r --arg arch $(arch) --arg os $(uname -o |cut -d'/' -f 2) '.assets[] | select(.name | test($os+"_"+$arch+"\\.tar\\.gz$"))|.browser_download_url' \
+          )
+          curl -o "$dir"/swagger.tar.gz -L'#' "$download_url"
+          (cd "$dir" && tar xvf swagger.tar.gz swagger)
+          sudo install "$dir"/swagger /usr/local/bin
+          /usr/local/bin/swagger version
 
       - name: Ensure Reviewable
         run: make check-diff
