@@ -28,12 +28,12 @@ jobs:
         uses: spectrocloud/palette-sdk-typescript/.github/actions/vault-credentials@main
 
       - name: Checkout
-        uses: actions/checkout@v6.0.1
+        uses: actions/checkout@v6.0.2
         with:
           token: ${{ steps.import-secrets.outputs.VAULT_GITHUB_TOKEN }}
 
       - name: Setup Node.js environment
-        uses: actions/setup-node@v6.1.0
+        uses: actions/setup-node@v6.2.0
         with:
           node-version: "22"
           cache: "npm"
@@ -50,7 +50,7 @@ jobs:
         uses: hashicorp/setup-copywrite@v1.1.3
 
       - name: Checkout HAPI Repository
-        uses: actions/checkout@v6.0.1
+        uses: actions/checkout@v6.0.2
         with:
           repository: spectrocloud/hapi
           path: api/hapi
