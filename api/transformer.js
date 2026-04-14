@@ -182,6 +182,13 @@ function cleanOpenAPISpec(spec) {
   
   let changesCount = 0;
 
+  // Orval upgrades Swagger 2 specs to OpenAPI 3, where root-level `schemes` is invalid.
+  if (spec.schemes !== undefined) {
+    delete spec.schemes;
+    changesCount++;
+    console.log('Removed root-level `schemes` (invalid in OpenAPI 3; use `servers` instead).');
+  }
+
   // 1. Remove duplicate urlEncodedBase64 schema
   changesCount += removeDuplicateUrlEncodedBase64Schema(spec);
 
