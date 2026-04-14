@@ -38,7 +38,7 @@ jobs:
           token: ${{ steps.import-secrets.outputs.VAULT_GITHUB_TOKEN }}
 
       - name: Setup Node.js environment
-        uses: actions/setup-node@v6.2.0
+        uses: actions/setup-node@v6.3.0
         with:
           node-version: "22"
           cache: "npm"
@@ -64,6 +64,11 @@ jobs:
 
       - name: Install dependencies
         run: sfw npm ci
+
+      # esbuild's postinstall is skipped when ignore-scripts is true; Orval needs the native binary.
+      # Invoking install.js directly runs only esbuild's installer (not other packages' scripts).
+      - name: Install esbuild platform binary
+        run: node node_modules/esbuild/install.js
 
       - name: Install Go Swagger
         run: |
