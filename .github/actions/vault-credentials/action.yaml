@@ -1,21 +1,21 @@
-# Copyright Spectro Cloud 2026, 0
+# Copyright (c) Spectro Cloud
 # SPDX-License-Identifier: Apache-2.0
 
 name: Vault Credentials
 
 inputs:
   APP_NAME:
-    description: 'GitHub application name'
-    default: 'palette-advanced-projects'
+    description: "Vault role name"
+    default: "palette-artificial-intelligence"
     required: false
 
 outputs:
   VAULT_GITHUB_TOKEN:
-    description: 'GitHub token retrieved from Vault'
+    description: "GitHub token retrieved from Vault"
     value: ${{ steps.import-secrets.outputs.VAULT_GITHUB_TOKEN }}
 
 runs:
-  using: 'composite'
+  using: "composite"
   steps:
     - name: Retrieve Credentials
       id: import-secrets
@@ -24,4 +24,5 @@ runs:
         url: https://vault.prism.spectrocloud.com
         method: jwt
         role: ${{ inputs.APP_NAME }}
-        secrets:  /providers/github/spectrocloud/${{ inputs.APP_NAME }}/token?org_name=spectrocloud token | VAULT_GITHUB_TOKEN
+        secrets: |
+          github/token/${{ inputs.APP_NAME }} token | VAULT_GITHUB_TOKEN
