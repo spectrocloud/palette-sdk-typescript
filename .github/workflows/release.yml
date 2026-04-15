@@ -62,7 +62,7 @@ jobs:
 
       - name: Install Go Swagger
         run: |
-          dir=$(mktemp -d) 
+          dir=$(mktemp -d)
           download_url=$(\
             curl -s https://api.github.com/repos/go-swagger/go-swagger/releases/latest | \
             jq -r --arg arch $(arch) --arg os $(uname -o |cut -d'/' -f 2) '.assets[] | select(.name | test($os+"_"+$arch+"\\.tar\\.gz$"))|.browser_download_url' \
@@ -95,7 +95,10 @@ jobs:
         name: Determine Version to Release
         env:
           INPUT_VERSION: ${{ github.event.inputs.version }}
+          VAULT_GITHUB_TOKEN: ${{ steps.import-secrets.outputs.VAULT_GITHUB_TOKEN }}
         run: |
+          git config --global --unset http.https://github.com/.extraheader || true
+          git remote set-url origin "https://x-access-token:${VAULT_GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
           if [ -n "$INPUT_VERSION" ]; then
             echo "Using provided version: $INPUT_VERSION"
             VERSION="$INPUT_VERSION"
