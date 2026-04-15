@@ -3,6 +3,7 @@
 .vscode
 
 # Directories
+api/hapi
 api/hapi/**
 node_modules
 dist/
