@@ -6,7 +6,7 @@ name: Vault Credentials
 inputs:
   APP_NAME:
     description: "Vault role name"
-    default: "palette-artificial-intelligence"
+    default: "palette-sdk-typescript"
     required: false
 
 outputs:
