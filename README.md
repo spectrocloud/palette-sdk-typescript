@@ -1,6 +1,6 @@
 # Palette SDK TypeScript
 
-A TypeScript SDK for the Spectro Cloud Palette API. This package provides a comprehensive set of functions to manage Kubernetes clusters, applications, and cloud resources through the Palette API.
+A TypeScript SDK for the Spectro Cloud Palette API. This package provides a comprehensive set of functions to manage Kubernetes clusters, applications, and cloud resources through the Palette API
 
 > [!WARNING]
 > This is an experimental SDK and subject to change.
