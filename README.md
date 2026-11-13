@@ -144,3 +144,5 @@ For issues and questions:
 - [Palette Terraform Provider](https://github.com/spectrocloud/terraform-provider-spectrocloud)
 - [Palette CLI](https://github.com/spectrocloud/palette-cli)
 - [Palette Go SDK](https://github.com/spectrocloud/palette-sdk-go)
+
+See the Palette API documentation for details.
